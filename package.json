@@ -2,16 +2,30 @@
   "name": "buildorders",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint --max-warnings=0 'src/**/*.js'",
+    "deploy": "node deploy.js"
+  },
   "dependencies": {
+    "@emotion/core": "^10.0.9",
+    "@emotion/styled": "^10.0.9",
+    "@reach/router": "^1.2.1",
+    "emotion": "^10.0.9",
+    "normalize.css": "^8.0.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "2.1.8"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+  "devDependencies": {
+    "@danielberndt/exec": "^1.2.0",
+    "@emotion/babel-preset-css-prop": "^10.0.9",
+    "customize-cra": "^0.2.12",
+    "dotenv": "^7.0.0",
+    "react-app-rewired": "^2.1.1"
   },
   "eslintConfig": {
     "extends": "react-app"
