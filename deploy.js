@@ -46,7 +46,7 @@ async function deployTo(opts) {
 
 const deploy = async () => {
   require("dotenv").config({path: path.join(__dirname, ".env.deploy-prod")});
-  // await exec("yarn build");
+  await exec("yarn build");
   deployTo({
     bucket: process.env.S3_BUCKET,
     region: process.env.S3_BUCKET_REGION,
