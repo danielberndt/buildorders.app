@@ -28,8 +28,9 @@ const villEatRateByFoodType = {
 const taskPerformer = {
   create: ({start, meta}, resDiffBySecond) =>
     subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.createType].cost),
-  build: ({start, meta}, resDiffBySecond) =>
-    subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.buildingType].cost),
+  build: ({start, meta}, resDiffBySecond) => {
+    if (meta.createdByMe) subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.buildingType].cost)
+  },
   wood: ({start, duration}, resDiffBySecond) =>
     addForDuration({type: "wood", amount: 0.3, start, duration, resDiffBySecond}),
   eat: ({start, duration, meta}, resDiffBySecond) =>

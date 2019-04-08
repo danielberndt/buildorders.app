@@ -32,7 +32,7 @@ const Timeline = ({totalSeconds, pixelsPerSecond}) => {
   return (
     <div css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2em"}}>
       {labels.map(label => (
-        <div css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>{label}</div>
+        <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>{label}</div>
       ))}
     </div>
   );
@@ -103,7 +103,7 @@ const entities = [
         start: 5,
         duration: buildingDuration(2, 25),
         type: "build",
-        meta: {builders: 2, buildingType: "house"},
+        meta: {builderIds: [2, 3], buildingType: "house", createdByMe: true},
       },
       {start: 5 + 19, duration: 15, type: "walk"},
       {start: 5 + 19 + 15, duration: 240, type: "eat", meta: {foodType: "sheep"}},
@@ -120,7 +120,7 @@ const entities = [
         start: 5,
         duration: buildingDuration(2, 25),
         type: "build",
-        meta: {builders: 2, buildingType: "house"},
+        meta: {builderIds: [2, 3], buildingType: "house", createdByMe: false},
       },
       {start: 5 + 19, duration: 15, type: "walk"},
       {start: 5 + 19 + 15, duration: 240, type: "eat", meta: {foodType: "sheep"}},
@@ -137,7 +137,7 @@ const entities = [
         start: 5,
         duration: buildingDuration(1, 25),
         type: "build",
-        meta: {builders: 1, buildingType: "house"},
+        meta: {builderIds: [4], buildingType: "house", createdByMe: true},
       },
       {start: 5 + 25, duration: 25, type: "walk"},
       {start: 5 + 25 + 25, duration: 240, type: "eat", meta: {foodType: "sheep"}},
@@ -184,7 +184,7 @@ const entities = [
         start: 100 + 15,
         duration: 35,
         type: "build",
-        meta: {builders: 1, buildingType: "lumbercamp"},
+        meta: {builderIds: [8], buildingType: "lumbercamp", createdByMe: true},
       },
       {start: 100 + 15 + 35, duration: 200, type: "wood"},
     ],
@@ -249,7 +249,7 @@ const App = () => {
           <div>
             <span>time: {currentTime} </span>
             {resTypes.map(type => (
-              <span>
+              <span key={type}>
                 | {type}: {Math.floor(currentRes[type])}{" "}
               </span>
             ))}
