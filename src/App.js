@@ -39,7 +39,7 @@ const Timeline = ({totalSeconds, pixelsPerSecond}) => {
 };
 
 const Task = ({task, pixelsPerSecond}) => {
-  const {start, duration, type, meta} = task;
+  const {duration, type} = task;
   const info = taskInfo[type];
   return (
     <div css={{height: duration * pixelsPerSecond, backgroundColor: info.color, color: "white"}}>
@@ -242,7 +242,7 @@ const App = () => {
             position: "sticky",
             top: 0,
             border: "1px solid yellow",
-            backgroundColor: "white",
+            backgroundColor: "#222",
             zIndex: 1,
           }}
         >
