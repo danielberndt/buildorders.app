@@ -1,5 +1,6 @@
-import {createArrayWith} from "./range";
 import {entitiyInfo} from "./info";
+
+const cloneRes = r => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
 
 const subtractInPlace = (r1, r2) => {
   r1.food += -r2.food || 0;
@@ -8,61 +9,67 @@ const subtractInPlace = (r1, r2) => {
   r1.stone += -r2.stone || 0;
 };
 
-const add = (r1, r2) => ({
-  food: r1.food + r2.food,
-  wood: r1.wood + r2.wood,
-  gold: r1.gold + r2.gold,
-  stone: r1.stone + r2.stone,
-});
-
-const addForDuration = ({type, amount, start, duration, resDiffBySecond}) => {
-  for (let s = start; s < start + duration; s += 1) {
-    resDiffBySecond[s][type] += amount;
-  }
-};
-
 const villEatRateByFoodType = {
   sheep: 0.33,
 };
 
-const taskPerformer = {
-  create: ({start, meta}, resDiffBySecond) =>
-    subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.createType].cost),
-  build: ({start, meta}, resDiffBySecond) => {
-    if (meta.createdByMe)
-      subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.buildingType].cost);
-  },
-  wood: ({start, duration}, resDiffBySecond) =>
-    addForDuration({type: "wood", amount: 0.3, start, duration, resDiffBySecond}),
-  eat: ({start, duration, meta}, resDiffBySecond) =>
-    addForDuration({
-      type: "food",
-      amount: villEatRateByFoodType[meta.foodType],
-      start,
-      duration,
-      resDiffBySecond,
-    }),
+const performTask = (task, ressources) => {
+  taskPerformer[task.type](task, ressources);
 };
 
+const taskPerformer = {
+  create: ({meta}, ressources) => subtractInPlace(ressources, entitiyInfo[meta.createType].cost),
+  build: ({meta}, ressources) => {
+    if (meta.createdByMe) {
+      subtractInPlace(ressources, entitiyInfo[meta.buildingType].cost);
+    }
+  },
+
+  wood: (_, ressources) => {
+    ressources.wood += 0.3;
+  },
+  eat: ({meta}, ressources) => {
+    ressources.food += villEatRateByFoodType[meta.foodType];
+  },
+};
+
+const resourceTasks = new Set(["create", "build", "eat", "wood", "gold", "stone"]);
+const oneOffTasks = new Set(["create", "build"]);
+
 export const calcRessources = (entities, starting, duration) => {
-  const resDiffBySecond = createArrayWith(duration + 1, () => ({
-    food: 0,
-    wood: 0,
-    gold: 0,
-    stone: 0,
-  }));
-  // console.log("resDiffBySecond", duration, resDiffBySecond);
+  const taskStarts = new Array(duration);
   entities.forEach(ent => {
     ent.tasks.forEach(task => {
-      const fn = taskPerformer[task.type];
-      if (fn) fn(task, resDiffBySecond);
+      if (task.start < duration && resourceTasks.has(task.type)) {
+        (taskStarts[task.start] = taskStarts[task.start] || []).push(task);
+      }
     });
   });
-  let last = starting;
-  const resBySecond = new Array(duration + 1);
-  for (let s = 0; s <= duration; s += 1) {
-    resBySecond[s] = add(last, resDiffBySecond[s]);
-    last = resBySecond[s];
+  let currRes = cloneRes(starting);
+  const resHistory = [];
+  const currentTasks = [];
+
+  for (let i = 0; i < duration; i += 1) {
+    const startNowTasks = taskStarts[i];
+    if (startNowTasks) {
+      for (let task of startNowTasks) {
+        if (oneOffTasks.has(task.type)) {
+          performTask(task, currRes);
+        } else {
+          currentTasks.push(task);
+        }
+      }
+    }
+    const toBeDeleted = [];
+    for (let idx = 0; idx < currentTasks.length; idx += 1) {
+      const task = currentTasks[idx];
+      performTask(task, currRes);
+      if (i > task.start + task.duration) toBeDeleted.push(idx);
+    }
+    for (let idx of toBeDeleted) currentTasks.splice(idx, 1);
+
+    resHistory.push(currRes);
+    currRes = cloneRes(currRes);
   }
-  return resBySecond;
+  return resHistory;
 };

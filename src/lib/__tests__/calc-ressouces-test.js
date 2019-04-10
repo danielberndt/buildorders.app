@@ -11,7 +11,7 @@ const foodVill = ({id, duration = 100, foodType = "sheep"}) => ({
 });
 
 test("null case", () => {
-  expect(calcRessources([], nullStart, 10)[10]).toMatchInlineSnapshot(`
+  expect(calcRessources([], nullStart, 10)[9]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
@@ -23,7 +23,7 @@ Object {
 
 test("one sheep vil", () => {
   const entities = [foodVill({id: 1, duration: 10})];
-  expect(calcRessources(entities, nullStart, 10)[10]).toMatchInlineSnapshot(`
+  expect(calcRessources(entities, nullStart, 10)[9]).toMatchInlineSnapshot(`
 Object {
   "food": 3.3000000000000003,
   "gold": 0,
@@ -35,7 +35,7 @@ Object {
 
 test("one sheep vil works longer than simulated", () => {
   const entities = [foodVill({id: 1, duration: 100})];
-  expect(calcRessources(entities, nullStart, 10)[10]).toMatchInlineSnapshot(`
+  expect(calcRessources(entities, nullStart, 10)[9]).toMatchInlineSnapshot(`
 Object {
   "food": 3.3000000000000003,
   "gold": 0,

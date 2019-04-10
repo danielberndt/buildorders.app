@@ -32,7 +32,9 @@ const Timeline = ({totalSeconds, pixelsPerSecond}) => {
   return (
     <div css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2em"}}>
       {labels.map(label => (
-        <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>{label}</div>
+        <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>
+          {label}
+        </div>
       ))}
     </div>
   );
@@ -227,7 +229,7 @@ const App = () => {
     scrollPos === null
       ? 0
       : Math.min(
-          totalDuration,
+          totalDuration - 1,
           Math.max(0, Math.round((-scrollPos + bufferFromStart) / pixelsPerSecond))
         );
 
@@ -265,7 +267,7 @@ const App = () => {
             }}
           />
           <div css={{display: "flex"}}>
-            <Timeline totalSeconds={totalDuration} pixelsPerSecond={pixelsPerSecond} />
+            <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
             {entities.map(entity => (
               <Entity key={entity.id} entity={entity} pixelsPerSecond={pixelsPerSecond} />
             ))}
