@@ -25,6 +25,7 @@
     "@emotion/babel-preset-css-prop": "^10.0.9",
     "customize-cra": "^0.2.12",
     "dotenv": "^7.0.0",
+    "prettier": "^1.16.4",
     "react-app-rewired": "^2.1.1"
   },
   "eslintConfig": {

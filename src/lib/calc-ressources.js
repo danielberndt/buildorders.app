@@ -29,7 +29,8 @@ const taskPerformer = {
   create: ({start, meta}, resDiffBySecond) =>
     subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.createType].cost),
   build: ({start, meta}, resDiffBySecond) => {
-    if (meta.createdByMe) subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.buildingType].cost)
+    if (meta.createdByMe)
+      subtractInPlace(resDiffBySecond[start], entitiyInfo[meta.buildingType].cost);
   },
   wood: ({start, duration}, resDiffBySecond) =>
     addForDuration({type: "wood", amount: 0.3, start, duration, resDiffBySecond}),
@@ -50,7 +51,7 @@ export const calcRessources = (entities, starting, duration) => {
     gold: 0,
     stone: 0,
   }));
-  console.log("resDiffBySecond", duration, resDiffBySecond);
+  // console.log("resDiffBySecond", duration, resDiffBySecond);
   entities.forEach(ent => {
     ent.tasks.forEach(task => {
       const fn = taskPerformer[task.type];
