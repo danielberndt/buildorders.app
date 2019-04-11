@@ -22,6 +22,8 @@ export const taskInfo = {
   },
   walk: {color: "gray"},
   build: {color: "purple"},
-  eat: {color: "red"},
-  wood: {color: "green"},
+  gather: {
+    sheep: {color: "red"},
+    wood: {color: "green"},
+  },
 };

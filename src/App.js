@@ -2,6 +2,7 @@ import React from "react";
 import {createArrayWith} from "./lib/range";
 import {taskInfo} from "./lib/info";
 import {calcRessources} from "./lib/calc-ressources";
+import {getDefaultModifiers} from "./lib/defaultModifiers";
 
 function getNodePosition(node) {
   if (!node) return null;
@@ -41,8 +42,8 @@ const Timeline = ({totalSeconds, pixelsPerSecond}) => {
 };
 
 const Task = ({task, pixelsPerSecond}) => {
-  const {duration, type} = task;
-  const info = taskInfo[type];
+  const {duration, type, meta} = task;
+  const info = type === "gather" ? taskInfo.gather[meta.type] : taskInfo[type];
   return (
     <div css={{height: duration * pixelsPerSecond, backgroundColor: info.color, color: "white"}}>
       {type.slice(0, 1)}
@@ -108,7 +109,7 @@ const entities = [
         meta: {builderIds: [2, 3], buildingType: "house", createdByMe: true},
       },
       {start: 5 + 19, duration: 15, type: "walk"},
-      {start: 5 + 19 + 15, duration: 240, type: "eat", meta: {foodType: "sheep"}},
+      {start: 5 + 19 + 15, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
     ],
   },
   {
@@ -125,7 +126,7 @@ const entities = [
         meta: {builderIds: [2, 3], buildingType: "house", createdByMe: false},
       },
       {start: 5 + 19, duration: 15, type: "walk"},
-      {start: 5 + 19 + 15, duration: 240, type: "eat", meta: {foodType: "sheep"}},
+      {start: 5 + 19 + 15, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
     ],
   },
   {
@@ -142,7 +143,7 @@ const entities = [
         meta: {builderIds: [4], buildingType: "house", createdByMe: true},
       },
       {start: 5 + 25, duration: 25, type: "walk"},
-      {start: 5 + 25 + 25, duration: 240, type: "eat", meta: {foodType: "sheep"}},
+      {start: 5 + 25 + 25, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
     ],
   },
   {
@@ -152,7 +153,7 @@ const entities = [
     createdBy: 1,
     tasks: [
       {start: 25, duration: 5, type: "walk"},
-      {start: 25 + 5, duration: 240, type: "eat", meta: {foodType: "sheep"}},
+      {start: 25 + 5, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
     ],
   },
   {
@@ -162,7 +163,7 @@ const entities = [
     createdBy: 1,
     tasks: [
       {start: 50, duration: 5, type: "walk"},
-      {start: 50 + 5, duration: 240, type: "eat", meta: {foodType: "sheep"}},
+      {start: 50 + 5, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
     ],
   },
   {
@@ -172,7 +173,7 @@ const entities = [
     createdBy: 1,
     tasks: [
       {start: 75, duration: 5, type: "walk"},
-      {start: 75 + 5, duration: 240, type: "eat", meta: {foodType: "sheep"}},
+      {start: 75 + 5, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
     ],
   },
   {
@@ -188,7 +189,7 @@ const entities = [
         type: "build",
         meta: {builderIds: [8], buildingType: "lumbercamp", createdByMe: true},
       },
-      {start: 100 + 15 + 35, duration: 200, type: "wood"},
+      {start: 100 + 15 + 35, duration: 200, type: "gather", meta: {type: "wood", distance: 2}},
     ],
   },
   {
@@ -198,7 +199,7 @@ const entities = [
     createdBy: 1,
     tasks: [
       {start: 125, duration: 15, type: "walk"},
-      {start: 125 + 15, duration: 200 - 35, type: "wood"},
+      {start: 125 + 15, duration: 200 - 35, type: "gather", meta: {type: "wood", distance: 2}},
     ],
   },
 ];
@@ -215,7 +216,8 @@ const resBySecond = calcRessources(
     gold: 100,
     stone: 200,
   },
-  totalDuration
+  totalDuration,
+  getDefaultModifiers()
 );
 
 const App = () => {
