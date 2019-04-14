@@ -50,9 +50,12 @@ const taskPerformer = {
           modifiers.villagers.walkingSpeedMultiplier
         )
       );
-      // TODO: take distance of farm from tc into account! (simething like this one below)
-      // return rawRate + 1 - (2 * meta.distance) / (0.8 * modifiers.villagers.walkingSpeedMultiplier)
-      ressources[ressource] += rawRate;
+      ressources[ressource] += resPerSecond(
+        carryingCapacity + extraCarryingCapacity,
+        meta.distance,
+        rawRate,
+        modifiers.villagers.walkingSpeedMultiplier
+      );
     } else {
       ressources[ressource] += resPerSecond(
         carryingCapacity + extraCarryingCapacity,

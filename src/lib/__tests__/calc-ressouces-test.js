@@ -74,3 +74,18 @@ Object {
 }
 `);
 });
+
+test("one farmer for a minute with 1 distance", () => {
+  const entities = [
+    gatherVill({ id: 1, duration: 60, type: "farm", distance: 1 })
+  ];
+  expect(calcRessources(entities, nullStart, 60, getDefaultModifiers())[59])
+    .toMatchInlineSnapshot(`
+Object {
+  "food": 19.127819548872203,
+  "gold": 0,
+  "stone": 0,
+  "wood": 0,
+}
+`);
+});
