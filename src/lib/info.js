@@ -26,4 +26,7 @@ export const taskInfo = {
     sheep: {color: "red"},
     wood: {color: "green"},
   },
+  wait: {
+    color: "light-gray",
+  },
 };

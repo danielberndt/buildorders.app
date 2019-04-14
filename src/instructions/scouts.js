@@ -2,12 +2,13 @@ import {createArrayWith} from "../lib/range";
 
 const scoutInstructions = {
   startingRes: {food: 200, gold: 200, wood: 200, stone: 200},
-  ressources: {
+  resPatches: {
     berries: {type: "berries", count: 6, distance: 10},
     sheep: {type: "sheep", count: 8, distance: 0},
     deers: {type: "deer", count: 3, distance: 15},
     strgl: {type: "stragglers", count: 6, distance: 4},
-    boars: {type: "boar", count: 2, distance: 15},
+    boar1: {type: "boar", distance: 15},
+    boar2: {type: "boar", distance: 15},
     woodline1: {type: "wood", distance: 15},
     woodline2: {type: "wood", distance: 20},
     gold: {type: "gold", distance: 15},
@@ -22,48 +23,67 @@ const scoutInstructions = {
 
   tasks: {
     v1: [
-      {type: "build", building: "house", distance: 1},
+      {type: "build", building: "house", distance: 1, id: "h1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
+      {type: "gather", resId: "boar1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", waitForEvent: "lureBoar1", resId: "boars"},
     ],
     v2: [
-      {type: "build", building: "house", distance: 1},
+      {type: "build", building: "house", distance: 1, id: "h1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
+      {type: "gather", resId: "boar1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", waitForEvent: "lureBoar1", resId: "boars"},
     ],
     v3: [
-      {type: "co-build", building: "house", distance: 1, with: ["v2"]},
+      {type: "build", building: "house", distance: 1, id: "h2"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
+      {type: "gather", resId: "boar1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", waitForEvent: "lureBoar1", resId: "boars"},
     ],
     tc: [
-      ...createArrayWith(22 - 4, i => ({type: "create", unit: "villager", id: `v${i + 4}`})),
+      ...createArrayWith(22 - 4, i => ({type: "train", unit: "villager", id: `v${i + 4}`})),
       {type: "research", technology: "loom"},
+      {type: "research", technology: "feudalAge"},
     ],
     v4: [
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
+      {type: "gather", resId: "boar1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", waitForEvent: "lureBoar1", resId: "boars"},
     ],
     v5: [
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
+      {type: "gather", resId: "boar1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", waitForEvent: "lureBoar1", resId: "boars"},
     ],
     v6: [
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
+      {type: "gather", resId: "boar1"},
+      {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", waitForEvent: "lureBoar1", resId: "boars"},
     ],
     v7: [
-      {type: "build", building: "lumbercamp", nearRes: "woodline1"},
+      {type: "build", building: "lumbercamp", atRes: "woodline1"},
       {type: "gather", resId: "woodline1"},
     ],
     v8: [{type: "gather", resId: "woodline1"}],
     v9: [{type: "gather", resId: "woodline1"}],
 
     v10: [
-      {type: "lure", boarId: "boars", onDone: "lureBoar1"},
-      {type: "gather", resId: "boars"},
+      {type: "lure", boarId: "boar1"},
+      {type: "gather", resId: "boar1", until: {type: "buildRes", building: "farm"}},
       {type: "build", building: "farm", id: "f1"},
-      {type: "farm", resId: "f1"},
+      {type: "gather", resId: "f1"},
     ],
 
     v11: [{type: "build", building: "house", distance: 8}, {type: "gather", resId: "berries"}],
@@ -72,24 +92,24 @@ const scoutInstructions = {
     v14: [{type: "gather", resId: "berries"}],
 
     v15: [
-      {type: "lure", boarId: "boars"},
-      {type: "gather", resId: "boars"},
-      {type: "gather", resId: "sheep"},
-      {type: "build", building: "farm", waitForBuildRes: "farm", id: "f2"},
-      {type: "farm", resId: "f2"},
+      {type: "lure", boarId: "boar2"},
+      {type: "gather", resId: "boar2", until: {type: "buildRes", building: "farm"}},
+      {type: "gather", resId: "sheep", until: {type: "buildRes", building: "farm"}},
+      {type: "build", building: "farm", id: "f2"},
+      {type: "gather", resId: "f2"},
     ],
     v16: [
       {type: "build", building: "house", distance: 8},
-      {type: "gather", resId: "boars"},
+      {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
     ],
-    v17: [{type: "gather", resId: "boars"}, {type: "gather", resId: "sheep"}],
-    v18: [{type: "gather", resId: "boars"}, {type: "gather", resId: "sheep"}],
+    v17: [{type: "gather", resId: "boar2"}, {type: "gather", resId: "sheep"}],
+    v18: [{type: "gather", resId: "boar2"}, {type: "gather", resId: "sheep"}],
 
     v19: [{type: "gather", resId: "woodline1"}],
     v20: [{type: "gather", resId: "woodline1"}],
     v21: [
-      {type: "build", building: "lumbercamp", nearRes: "woodline2"},
+      {type: "build", building: "lumbercamp", atRes: "woodline2"},
       {type: "gather", resId: "woodline2"},
     ],
 

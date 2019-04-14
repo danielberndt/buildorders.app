@@ -109,3 +109,129 @@ export const calcRessources = (entities, starting, duration, modifiers) => {
   }
   return resHistory;
 };
+
+const nextIds = {};
+const generateId = (type, name) => {
+  const key = `${type}-${name[0]}`;
+  if (!nextIds[key]) nextIds[key] = 0;
+  return (nextIds[key] += 1);
+};
+
+const taskToDistance = {
+  build: ({distance, atRes}, resPatches) => (atRes ? resPatches[atRes].distance : distance),
+  gather: ({resId}, resPatches) => resPatches[resId].distance,
+  lure: ({boarId}, resPatches) => resPatches[boarId].distance - 2, // because we've got arrows!
+};
+
+const taskToStep = {
+  build: ({task, time}) => {
+    const {type, building, id: maybeId} = task;
+    const id = maybeId || generateId("build", building);
+    return {
+      type,
+      start: time,
+      building,
+      id,
+      task,
+      until: [{type: "event", name: `buldingFinish-${id}`}],
+    };
+  },
+  gather: ({task, time, resPatches}) => {
+    const {type, resId, until} = task;
+    const res = resPatches[resId];
+    return {
+      type,
+      start: time,
+      resType: res.type,
+      task,
+      until: [...(until ? [until] : []), {type: "event", name: `resDepleted-${resId}`}],
+    };
+  },
+  lure: ({entity, task, time, modifiers}) => {
+    const walkDist = euclidianDist(entitiyInfo.distanceFromTC, 0);
+    const {boarId} = task;
+    entity.steps.push({
+      type: "walk",
+      luringBoarId: boarId,
+      start: time,
+      task,
+      endLocation: 0,
+      remainingDistance: walkDist,
+      until: [{type: "atTarget"}],
+    });
+  },
+  wait: ({task, time}) => {
+    const {type, until} = task;
+    return {type, start: time, task, until: [...(until ? [until] : [])]};
+  },
+};
+
+const euclidianDist = (d1, d2) => (d1 * d1 + d2 * d2) ** 0.5;
+
+const getNextTask = (entity, resPatches, time, modifiers) => {
+  const nextTask = entity.remainingTasks[0] || {type: "wait"};
+  // check if we need to walk there first
+  const distanceFn = taskToDistance[entity.type];
+  if (distanceFn) {
+    const taskDistFromTc = distanceFn(nextTask, resPatches);
+    const walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
+    if (walkDist > 0) {
+      return {
+        type: "walk",
+        start: time,
+        endLocation: taskDistFromTc,
+        remainingDistance: walkDist,
+        until: [{type: "atTarget"}],
+      };
+    }
+  } else {
+    entity.remainingTasks.shift();
+    return taskToStep({entity, task: nextTask, resPatches, time, modifiers});
+  }
+};
+
+export const simulateGame = (instructions, duration, modifiers) => {
+  let currRes = cloneRes(instructions.starting);
+  const resHistory = [];
+  const entities = {};
+  Object.entries(instructions.entites).map(
+    ([id, {type}]) =>
+      (entities[id] = {
+        type,
+        createdAt: 0,
+        steps: [],
+        remainingTasks: instructions.tasks[id],
+        distanceFromTC: type === "villager" ? 3 : null,
+      })
+  );
+
+  /*
+  loop:
+
+  - do spoilage for sheep/deer/boars that have been gathered from in last tick.
+  - mark res as non-gathered
+
+  - perform tasks
+    - gathering: set `gathered-this-tick` flag, make sure you res not depleted yet, add event if depeleted
+    - building:
+      - check if construction id already exists,
+      - if not, subtract res, create construction entitiy with HP,
+      - add builder to each construction
+    - walk:
+      - subtract remainingDistance
+      - if luring, update boar distance
+
+  - calc construction progress
+    - add to HP per builder, add event & entity if completed
+
+  - check if end/until conditions are met
+    - lure: fire event "lure_${boarId}"
+    - if endLocation, update ent.distanceFromTC
+    - getNextTask check if end/until conditions are met
+
+  */
+
+  // const
+
+  // Object.values(entities).forEach()
+};
