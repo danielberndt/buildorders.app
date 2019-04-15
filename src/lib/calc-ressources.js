@@ -1,4 +1,4 @@
-import {entitiyInfo} from "./info";
+import {entitiyInfo, resPerUnit, decayRes, villGatheringData} from "./info";
 
 const cloneRes = r => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
 
@@ -10,22 +10,41 @@ const subtractInPlace = (r1, r2) => {
 };
 
 // thanks SOL! https://www.youtube.com/watch?v=Hca1oSsOPh4
-const resPerSecond = (capacity, distance, gatheringRate, walkingSpeedModifier) =>
-  capacity / (capacity / gatheringRate + (2 * distance) / (0.8 * walkingSpeedModifier));
-
-const villGatheringData = {
-  forage: {rawGatheringPerS: 0.31, carryingCapacity: 10, ressource: "food"},
-  sheep: {rawGatheringPerS: 0.33, carryingCapacity: 10, ressource: "food"},
-  hunt: {rawGatheringPerS: 0.41, carryingCapacity: 35, ressource: "food"},
-  fish: {rawGatheringPerS: 0.43, carryingCapacity: 10, ressource: "food"},
-  farm: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "food"},
-  wood: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "wood"},
-  gold: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "gold"},
-  stone: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "stone"},
-};
+const resPerSecond = (capacity, distance, gatheringRate, walkingSpeedMultiplier) =>
+  capacity / (capacity / gatheringRate + (2 * distance) / (0.8 * walkingSpeedMultiplier));
 
 const performTask = (task, ressources, modifiers) => {
   taskPerformer[task.type](task, ressources, modifiers);
+};
+
+const gather = (type, distance, modifiers) => {
+  const {rawGatheringPerS, carryingCapacity} = villGatheringData[type];
+  const {gatheringMultiplier, extraCarryingCapacity} = modifiers.gathering[type];
+  if (type === "farm") {
+    // according to https://www.reddit.com/r/aoe2/comments/7d9b9k/some_updated_completed_farming_workrate_values/
+    const rawRate = Math.min(
+      24 / 60,
+      resPerSecond(
+        carryingCapacity + extraCarryingCapacity,
+        4,
+        rawGatheringPerS * gatheringMultiplier,
+        modifiers.villagers.walkingSpeedMultiplier
+      )
+    );
+    return resPerSecond(
+      carryingCapacity + extraCarryingCapacity,
+      distance,
+      rawRate,
+      modifiers.villagers.walkingSpeedMultiplier
+    );
+  } else {
+    return resPerSecond(
+      carryingCapacity + extraCarryingCapacity,
+      distance,
+      rawGatheringPerS * gatheringMultiplier,
+      modifiers.villagers.walkingSpeedMultiplier
+    );
+  }
 };
 
 const taskPerformer = {
@@ -36,7 +55,7 @@ const taskPerformer = {
     }
   },
 
-  gather: ({meta}, ressources, modifiers) => {
+  gather: (meta, ressources, modifiers) => {
     const {rawGatheringPerS, carryingCapacity, ressource} = villGatheringData[meta.type];
     const {gatheringMultiplier, extraCarryingCapacity} = modifiers.gathering[meta.type];
     if (meta.type === "farm") {
@@ -120,7 +139,7 @@ const generateId = (type, name) => {
 const taskToDistance = {
   build: ({distance, atRes}, resPatches) => (atRes ? resPatches[atRes].distance : distance),
   gather: ({resId}, resPatches) => resPatches[resId].distance,
-  lure: ({boarId}, resPatches) => resPatches[boarId].distance - 2, // because we've got arrows!
+  lure: ({boarId}, resPatches) => resPatches[boarId].distance + 4, // because we've got arrows, but need to run through tc
 };
 
 const taskToStep = {
@@ -143,11 +162,12 @@ const taskToStep = {
       type,
       start: time,
       resType: res.type,
+      resId,
       task,
       until: [...(until ? [until] : []), {type: "event", name: `resDepleted-${resId}`}],
     };
   },
-  lure: ({entity, task, time, modifiers}) => {
+  lure: ({entity, task, time}) => {
     const walkDist = euclidianDist(entitiyInfo.distanceFromTC, 0);
     const {boarId} = task;
     entity.steps.push({
@@ -186,15 +206,30 @@ const getNextTask = (entity, resPatches, time, modifiers) => {
     }
   } else {
     entity.remainingTasks.shift();
-    return taskToStep({entity, task: nextTask, resPatches, time, modifiers});
+    return taskToStep({entity, task: nextTask, resPatches, time});
   }
+};
+
+const enhanceRessources = (resPatches, modifiers) => {
+  const enhanced = {};
+  Object.entries(resPatches).forEach(([id, res]) => {
+    enhanced[id] = {
+      ...res,
+      resType: villGatheringData[res.type].ressource,
+      remaining:
+        resPerUnit[res.subtype || res.type] *
+        (res.count || 1) *
+        modifiers.ressourceDurationMultiplier,
+    };
+  });
+  return enhanced;
 };
 
 export const simulateGame = (instructions, duration, modifiers) => {
   let currRes = cloneRes(instructions.starting);
   const resHistory = [];
   const entities = {};
-  Object.entries(instructions.entites).map(
+  Object.entries(instructions.entites).forEach(
     ([id, {type}]) =>
       (entities[id] = {
         type,
@@ -204,6 +239,22 @@ export const simulateGame = (instructions, duration, modifiers) => {
         distanceFromTC: type === "villager" ? 3 : null,
       })
   );
+  const resPatches = enhanceRessources(instructions.resPatches, modifiers);
+  const decayableRes = {};
+  Object.entries(resPatches).forEach(([id, res]) => {
+    const decayRate = decayRes[res.type];
+    if (decayRate) {
+      decayableRes[id] = {
+        decayRate,
+        hasBeenTouched: false,
+        patch: res,
+      };
+    }
+  });
+
+  const constructions = {};
+  const events = new Set();
+  const currentSteps = Object.values(entities).map(e => getNextTask(e, resPatches, 0, modifiers));
 
   /*
   loop:
@@ -228,8 +279,62 @@ export const simulateGame = (instructions, duration, modifiers) => {
     - lure: fire event "lure_${boarId}"
     - if endLocation, update ent.distanceFromTC
     - getNextTask check if end/until conditions are met
-
   */
+
+  for (let t = 0; t < duration; t += 1) {
+    for (const res of Object.values(decayableRes)) {
+      if (res.hasBeenTouched) {
+        res.patch.remaining = Math.max(0, res.patch.remaining - res.decayRate);
+        res.hasBeenTouched = false;
+      }
+    }
+
+    for (const step of currentSteps) {
+      if (step.type === "building") {
+        const {id, building} = step;
+        if (!constructions[id]) {
+          const {contructionTime, cost} = entitiyInfo[building];
+          constructions[id] = {builders: 0, timeLeft: contructionTime, building};
+          subtractInPlace(currRes, cost);
+        }
+        constructions[id].builders += 1;
+      } else if (step.type === "walk") {
+        const {luringBoarId, remainingDistance} = step;
+        const nextDist = remainingDistance - 0.8 * modifiers.villages.walkingSpeedMultiplier;
+        step.remainingDistance = Math.max(0, nextDist);
+        if (step.remainingDistance === 0 && luringBoarId) {
+          resPatches[luringBoarId].distance = 0;
+        }
+      } else if (step.type === "gather") {
+        const {resId} = step;
+        const res = resPatches[resId];
+        if (res.remaining >= 0) {
+          const decayRes = decayableRes[resId];
+          if (decayRes) decayRes.hasBeenTouched = true;
+          let gatherAmount = gather(res.type, res.distance, modifiers);
+          res.remaining -= gatherAmount;
+          if (res.remaining <= 0) {
+            gatherAmount += res.remaining;
+            res.remaining = 0;
+            events.add(`resDepleted-${resId}`);
+          }
+          currRes[res.resType] += gatherAmount;
+        }
+      }
+    }
+
+    for (const [id, construction] of Object.entries(constructions)) {
+      if (construction.builders > 0) {
+        construction.timeLeft -= 3 / (construction.builders + 2);
+      }
+      construction.builders = 0;
+      if (construction.timeLeft <= 0) {
+        events.add(`buldingFinish-${id}`);
+        // entities.push();
+        // use code from above, maybe mark "resAt" ressource as non-tc walkable
+      }
+    }
+  }
 
   // const
 

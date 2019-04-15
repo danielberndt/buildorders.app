@@ -15,11 +15,10 @@ const unitProductionBuilding = {
 };
 
 const getDefaultOneAge = () => ({
-  // no real modifiers, just bonuses?
-  // extraRessources: {food: 0, wood: 0, stone: 0, gold: 0},
-  // freeTechs: {}, // {towncenter: ["loom"]}
-  // farmExtraFood: 0,
-  // ressourceDurationMultiplier: 1,
+  extraRessources: {food: 0, wood: 0, stone: 0, gold: 0},
+  freeTechs: {}, // {towncenter: ["loom"]}
+  farmExtraFood: 0,
+  ressourceDurationMultiplier: 1,
 
   gathering: {
     sheep: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
