@@ -1,5 +1,6 @@
 const boringBuilding = {
-  buildingCostMultiplier: 1,
+  buildingWoodCostMultiplier: 1,
+  buildingStoneCostMultiplier: 1,
   buildingSpeedMultiplier: 1,
 };
 
@@ -33,7 +34,7 @@ const getDefaultOneAge = () => ({
   villagers: {
     walkingSpeedMultiplier: 1,
   },
-  buildings: {
+  entities: {
     farm: {...boringBuilding},
     house: {...boringBuilding},
     palisade: {...boringBuilding},
