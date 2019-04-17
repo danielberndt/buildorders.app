@@ -267,7 +267,7 @@ const canAfford = (currRes, cost) => {
 
 const conditionFulfilled = {
   event: ({cond: {name}, events}) => events.has(name),
-  atTarget: ({step}) => step.remainingDistance === 0,
+  atTarget: ({step}) => step.desc.remainingDistance === 0,
   buildRes: ({cond: {building}, modifiers, currRes}) => {
     const cost = entitiyInfo[building];
     const mod = modifiers.entities[building];
@@ -281,7 +281,7 @@ const conditionFulfilled = {
 };
 
 const isStepCompleted = (step, events, modifiers, currRes) =>
-  step.until.some(cond => conditionFulfilled[cond.type]({cond, events, modifiers, currRes}));
+  step.desc.until.some(cond => conditionFulfilled[cond.type]({cond, events, modifiers, currRes}));
 
 export const simulateGame = (instructions, duration, modifiers) => {
   let currRes = cloneRes(instructions.starting);
@@ -353,23 +353,24 @@ export const simulateGame = (instructions, duration, modifiers) => {
     }
 
     for (const step of currentSteps) {
-      if (step.type === "building") {
-        const {id, building} = step;
+      const {desc} = step;
+      if (desc.type === "building") {
+        const {id, building} = desc;
         if (!constructions[id]) {
           const {contructionTime, cost} = entitiyInfo[building];
           constructions[id] = {builders: 0, timeLeft: contructionTime, building};
           subtractInPlace(currRes, cost);
         }
         constructions[id].builders += 1;
-      } else if (step.type === "walk") {
-        const {luringBoarId, remainingDistance} = step;
+      } else if (desc.type === "walk") {
+        const {luringBoarId, remainingDistance} = desc;
         const nextDist = remainingDistance - 0.8 * modifiers.villages.walkingSpeedMultiplier;
-        step.remainingDistance = Math.max(0, nextDist);
-        if (step.remainingDistance === 0 && luringBoarId) {
+        desc.remainingDistance = Math.max(0, nextDist);
+        if (desc.remainingDistance === 0 && luringBoarId) {
           resPatches[luringBoarId].distance = 0;
         }
-      } else if (step.type === "gather") {
-        const {resId} = step;
+      } else if (desc.type === "gather") {
+        const {resId} = desc;
         const res = resPatches[resId];
         if (res.remaining >= 0) {
           const decayRes = decayableRes[resId];
@@ -384,7 +385,7 @@ export const simulateGame = (instructions, duration, modifiers) => {
           currRes[res.resType] += gatherAmount;
         }
       } else {
-        console.log("dunno", step.type);
+        console.log("dunno", desc.type);
       }
     }
 
