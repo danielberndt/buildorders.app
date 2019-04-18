@@ -1,3 +1,7 @@
+import {gatherTypes} from "./types";
+
+export type Modifiers = ReturnType<typeof getDefaultOneAge>;
+
 const boringBuilding = {
   buildingWoodCostMultiplier: 1,
   buildingStoneCostMultiplier: 1,
@@ -30,7 +34,7 @@ const getDefaultOneAge = () => ({
     wood: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
     gold: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
     stone: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-  },
+  } as {[key in gatherTypes]: {gatheringMultiplier: number; extraCarryingCapacity: number}},
   villagers: {
     walkingSpeedMultiplier: 1,
   },

@@ -1,3 +1,5 @@
+import {gatherTypes, Res, ResPatch} from "./types";
+
 export const entitiyInfo = {
   villager: {
     type: "unit",
@@ -16,7 +18,9 @@ export const entitiyInfo = {
   },
 };
 
-export const villGatheringData = {
+export const villGatheringData: {
+  [key in gatherTypes]: {rawGatheringPerS: number; carryingCapacity: number; ressource: keyof Res}
+} = {
   forage: {rawGatheringPerS: 0.31, carryingCapacity: 10, ressource: "food"},
   sheep: {rawGatheringPerS: 0.33, carryingCapacity: 10, ressource: "food"},
   hunt: {rawGatheringPerS: 0.41, carryingCapacity: 35, ressource: "food"},
@@ -27,15 +31,19 @@ export const villGatheringData = {
   stone: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "stone"},
 };
 
-export const resPerUnit = {
-  berries: 125,
-  sheep: 100,
-  deer: 140,
-  boar: 340,
-  wood: 10000,
-  gold: 800,
-  stone: 350,
-  straggler: 100,
+type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
+
+export const resPerUnit: {
+  [key in PropType<ResPatch, "type">]: {amount: number; type: keyof Res}
+} = {
+  berries: {amount: 125, type: "food"},
+  sheep: {amount: 100, type: "food"},
+  deer: {amount: 140, type: "food"},
+  boar: {amount: 340, type: "food"},
+  wood: {amount: 10000, type: "wood"},
+  gold: {amount: 800, type: "gold"},
+  stone: {amount: 350, type: "stone"},
+  stragglers: {amount: 100, type: "wood"},
 };
 
 export const decayRates = {

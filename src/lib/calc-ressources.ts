@@ -1,8 +1,10 @@
-import {entitiyInfo, resPerUnit, decayRes, villGatheringData} from "./info";
+import {entitiyInfo, resPerUnit, decayRates, villGatheringData} from "./info";
+import {Res, gatherTypes, taskTypes, ResPatches, EnhancedResPatches} from "./types";
+import {Modifiers} from "./defaultModifiers";
 
-const cloneRes = r => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
+const cloneRes = (r: Res): Res => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
 
-const subtractInPlace = (r1, r2) => {
+const subtractInPlace = (r1: Res, r2: Res) => {
   r1.food += -r2.food || 0;
   r1.wood += -r2.wood || 0;
   r1.gold += -r2.gold || 0;
@@ -10,14 +12,14 @@ const subtractInPlace = (r1, r2) => {
 };
 
 // thanks SOL! https://www.youtube.com/watch?v=Hca1oSsOPh4
-const resPerSecond = (capacity, distance, gatheringRate, walkingSpeedMultiplier) =>
-  capacity / (capacity / gatheringRate + (2 * distance) / (0.8 * walkingSpeedMultiplier));
+const resPerSecond = (
+  capacity: number,
+  distance: number,
+  gatheringRate: number,
+  walkingSpeedMultiplier: number
+) => capacity / (capacity / gatheringRate + (2 * distance) / (0.8 * walkingSpeedMultiplier));
 
-const performTask = (task, ressources, modifiers) => {
-  taskPerformer[task.type](task, ressources, modifiers);
-};
-
-const gather = (type, distance, modifiers) => {
+const gather = (type: gatherTypes, distance: number, modifiers: Modifiers) => {
   const {rawGatheringPerS, carryingCapacity} = villGatheringData[type];
   const {gatheringMultiplier, extraCarryingCapacity} = modifiers.gathering[type];
   if (type === "farm") {
@@ -47,96 +49,16 @@ const gather = (type, distance, modifiers) => {
   }
 };
 
-const taskPerformer = {
-  create: ({meta}, ressources) => subtractInPlace(ressources, entitiyInfo[meta.createType].cost),
-  build: ({meta}, ressources) => {
-    if (meta.createdByMe) {
-      subtractInPlace(ressources, entitiyInfo[meta.buildingType].cost);
-    }
-  },
-
-  gather: (meta, ressources, modifiers) => {
-    const {rawGatheringPerS, carryingCapacity, ressource} = villGatheringData[meta.type];
-    const {gatheringMultiplier, extraCarryingCapacity} = modifiers.gathering[meta.type];
-    if (meta.type === "farm") {
-      // according to https://www.reddit.com/r/aoe2/comments/7d9b9k/some_updated_completed_farming_workrate_values/
-      const rawRate = Math.min(
-        24 / 60,
-        resPerSecond(
-          carryingCapacity + extraCarryingCapacity,
-          4,
-          rawGatheringPerS * gatheringMultiplier,
-          modifiers.villagers.walkingSpeedMultiplier
-        )
-      );
-      ressources[ressource] += resPerSecond(
-        carryingCapacity + extraCarryingCapacity,
-        meta.distance,
-        rawRate,
-        modifiers.villagers.walkingSpeedMultiplier
-      );
-    } else {
-      ressources[ressource] += resPerSecond(
-        carryingCapacity + extraCarryingCapacity,
-        meta.distance,
-        rawGatheringPerS * gatheringMultiplier,
-        modifiers.villagers.walkingSpeedMultiplier
-      );
-    }
-  },
-};
-
-const resourceTasks = new Set(["create", "build", "gather"]);
-const oneOffTasks = new Set(["create", "build"]);
-
-export const calcRessources = (entities, starting, duration, modifiers) => {
-  const currentModifiers = modifiers.darkAge;
-
-  const taskStarts = new Array(duration);
-  entities.forEach(ent => {
-    ent.tasks.forEach(task => {
-      if (task.start < duration && resourceTasks.has(task.type)) {
-        (taskStarts[task.start] = taskStarts[task.start] || []).push(task);
-      }
-    });
-  });
-  let currRes = cloneRes(starting);
-  const resHistory = [];
-  const currentTasks = [];
-
-  for (let i = 0; i < duration; i += 1) {
-    const startNowTasks = taskStarts[i];
-    if (startNowTasks) {
-      for (let task of startNowTasks) {
-        if (oneOffTasks.has(task.type)) {
-          performTask(task, currRes, currentModifiers);
-        } else {
-          currentTasks.push(task);
-        }
-      }
-    }
-    const toBeDeleted = [];
-    for (let idx = 0; idx < currentTasks.length; idx += 1) {
-      const task = currentTasks[idx];
-      performTask(task, currRes, currentModifiers);
-      if (i > task.start + task.duration) toBeDeleted.push(idx);
-    }
-    for (let idx of toBeDeleted) currentTasks.splice(idx, 1);
-
-    resHistory.push(currRes);
-    currRes = cloneRes(currRes);
-  }
-  return resHistory;
-};
-
-const nextIds = {};
-const generateId = (type, name) => {
+const nextIds: {[key: string]: number} = {};
+const generateId = (type: string, name: string) => {
   const key = `${type}-${name[0]}`;
   if (!nextIds[key]) nextIds[key] = 0;
   return (nextIds[key] += 1);
 };
 
-const taskToDistance = {
+type TaskToDist = (task: Task, resPatches: ResPatches) => number;
+
+const taskToDistance: {[key in taskTypes]: TaskToDist} = {
   build: ({distance, atRes}, resPatches) => (atRes ? resPatches[atRes].distance : distance),
   gather: ({resId}, resPatches) => resPatches[resId].distance,
   lure: ({boarId}, resPatches) => resPatches[boarId].distance + 4, // because we've got arrows, but need to run through tc
@@ -241,8 +163,8 @@ const processConditions = (
   }
 };
 
-const enhanceRessources = (resPatches, modifiers) => {
-  const enhanced = {};
+const enhanceRessources = (resPatches: ResPatches, modifiers: Modifiers) => {
+  const enhanced: EnhancedResPatches = {};
   Object.entries(resPatches).forEach(([id, res]) => {
     enhanced[id] = {
       ...res,
@@ -289,7 +211,7 @@ export const simulateGame = (instructions, duration, modifiers) => {
 
   const resPatches = enhanceRessources(instructions.resPatches, modifiers);
   Object.entries(resPatches).forEach(([id, res]) => {
-    const decayRate = decayRes[res.type];
+    const decayRate = decayRates[res.type];
     if (decayRate) {
       decayableRes[id] = {
         decayRate,
