@@ -1,4 +1,4 @@
-import {gatherTypes} from "./types";
+import {GatherTypes} from "./types";
 
 export type Modifiers = ReturnType<typeof getDefaultOneAge>;
 
@@ -26,19 +26,19 @@ const getDefaultOneAge = () => ({
   ressourceDurationMultiplier: 1,
 
   gathering: {
-    sheep: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    fish: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    hunt: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    farm: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    forage: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    wood: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    gold: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-    stone: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
-  } as {[key in gatherTypes]: {gatheringMultiplier: number; extraCarryingCapacity: number}},
+    foraging: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    eatingSheep: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    hunting: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    fishing: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    farming: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    cuttingWood: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    miningGold: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+    miningStone: {gatheringMultiplier: 1, extraCarryingCapacity: 0},
+  } as {[key in GatherTypes]: {gatheringMultiplier: number; extraCarryingCapacity: number}},
   villagers: {
     walkingSpeedMultiplier: 1,
   },
-  entities: {
+  buildings: {
     farm: {...boringBuilding},
     house: {...boringBuilding},
     palisade: {...boringBuilding},

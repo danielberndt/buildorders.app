@@ -1,6 +1,7 @@
 import {createArrayWith} from "../lib/range";
+import {Instructions, Task} from "../lib/types";
 
-const scoutInstructions = {
+const scoutInstructions: Instructions = {
   startingRes: {food: 200, gold: 200, wood: 200, stone: 200},
   resPatches: {
     berries: {type: "berries", count: 6, distance: 10},
@@ -14,7 +15,7 @@ const scoutInstructions = {
     gold: {type: "gold", distance: 15},
     stone: {type: "stone", distance: 15},
   },
-  entites: {
+  entities: {
     tc: {type: "towncenter"},
     v1: {type: "villager"},
     v2: {type: "villager"},
@@ -47,7 +48,7 @@ const scoutInstructions = {
       {type: "gather", resId: "sheep"},
     ],
     tc: [
-      ...createArrayWith(22 - 4, i => ({type: "train", unit: "villager", id: `v${i + 4}`})),
+      ...createArrayWith<Task>(22 - 4, i => ({type: "train", unit: "villager", id: `v${i + 4}`})),
       {type: "research", technology: "loom"},
       {type: "research", technology: "feudalAge"},
     ],
@@ -82,7 +83,7 @@ const scoutInstructions = {
     v10: [
       {type: "lure", boarId: "boar1"},
       {type: "gather", resId: "boar1", until: {type: "buildRes", building: "farm"}},
-      {type: "build", building: "farm", id: "f1"},
+      {type: "build", building: "farm", id: "f1", distance: 0},
       {type: "gather", resId: "f1"},
     ],
 
@@ -95,7 +96,7 @@ const scoutInstructions = {
       {type: "lure", boarId: "boar2"},
       {type: "gather", resId: "boar2", until: {type: "buildRes", building: "farm"}},
       {type: "gather", resId: "sheep", until: {type: "buildRes", building: "farm"}},
-      {type: "build", building: "farm", id: "f2"},
+      {type: "build", building: "farm", id: "f2", distance: 0},
       {type: "gather", resId: "f2"},
     ],
     v16: [

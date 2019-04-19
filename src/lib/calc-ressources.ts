@@ -1,5 +1,18 @@
-import {entitiyInfo, resPerUnit, decayRates, villGatheringData} from "./info";
-import {Res, gatherTypes, taskTypes, ResPatches, EnhancedResPatches} from "./types";
+import {resPerUnit, decayRates, villGatheringData} from "./info";
+import {
+  Res,
+  GatherTypes,
+  ResPatches,
+  EnhancedResPatches,
+  Instructions,
+  Step,
+  Entity,
+  EnhancedResPatch,
+  StepTypes,
+  Task,
+  TaskType,
+  PropType,
+} from "./types";
 import {Modifiers} from "./defaultModifiers";
 
 const cloneRes = (r: Res): Res => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
@@ -19,10 +32,10 @@ const resPerSecond = (
   walkingSpeedMultiplier: number
 ) => capacity / (capacity / gatheringRate + (2 * distance) / (0.8 * walkingSpeedMultiplier));
 
-const gather = (type: gatherTypes, distance: number, modifiers: Modifiers) => {
+const gather = (type: GatherTypes, distance: number, modifiers: Modifiers) => {
   const {rawGatheringPerS, carryingCapacity} = villGatheringData[type];
   const {gatheringMultiplier, extraCarryingCapacity} = modifiers.gathering[type];
-  if (type === "farm") {
+  if (type === "farming") {
     // according to https://www.reddit.com/r/aoe2/comments/7d9b9k/some_updated_completed_farming_workrate_values/
     const rawRate = Math.min(
       24 / 60,
@@ -56,10 +69,14 @@ const generateId = (type: string, name: string) => {
   return (nextIds[key] += 1);
 };
 
-type TaskToDist = (task: Task, resPatches: ResPatches) => number;
+type TaskToDist = {
+  [P in TaskType]?: (task: FindByType<Task, P>, resPatches: EnhancedResPatches) => number
+};
 
-const taskToDistance: {[key in taskTypes]: TaskToDist} = {
-  build: ({distance, atRes}, resPatches) => (atRes ? resPatches[atRes].distance : distance),
+type FindByType<TaskCondidate, Tag> = TaskCondidate extends {type: Tag} ? TaskCondidate : never;
+
+const taskToDistance: TaskToDist = {
+  build: (task, resPatches) => ("atRes" in task ? resPatches[task.atRes].distance : task.distance),
   gather: ({resId}, resPatches) => resPatches[resId].distance,
   lure: ({boarId}, resPatches) => resPatches[boarId].distance + 4, // because we've got arrows, but need to run through tc
 };
@@ -85,8 +102,8 @@ const taskToStep = {
       until: [...(until ? [until] : []), {type: "event", name: `resDepleted-${resId}`}],
     };
   },
-  lure: ({task}) => {
-    const walkDist = euclidianDist(entitiyInfo.distanceFromTC, 0);
+  lure: ({task, entity}) => {
+    const walkDist = euclidianDist(entity.distanceFromTC, 0);
     const {boarId} = task;
     return {
       type: "walk",
@@ -102,13 +119,13 @@ const taskToStep = {
   },
 };
 
-const euclidianDist = (d1, d2) => (d1 * d1 + d2 * d2) ** 0.5;
+const euclidianDist = (d1: number, d2: number) => (d1 * d1 + d2 * d2) ** 0.5;
 
-const getNextStepDesc = (entity, resPatches, time) => {
+const getNextStepDesc = (entity: Entity, resPatches: EnhancedResPatches, time: number) => {
   const nextTask = entity.remainingTasks[0] || {type: "wait"};
   // check if we need to walk there first
-  const distanceFn = taskToDistance[entity.type];
-  if (distanceFn) {
+  const distanceFn = taskToDistance[nextTask.type];
+  if (distanceFn && entity.distanceFromTC !== null) {
     const taskDistFromTc = distanceFn(nextTask, resPatches);
     const walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
     if (walkDist > 0) {
@@ -125,23 +142,23 @@ const getNextStepDesc = (entity, resPatches, time) => {
   }
 };
 
-const getNextStep = (entity, resPatches, time) => {
+const getNextStep = (entity: Entity, resPatches: EnhancedResPatches, time: number): Step => {
   const taskDesc = getNextStepDesc(entity, resPatches, time);
   return {desc: taskDesc, entity, start: time};
 };
 
-const onFinishStep = {};
+const onFinishStep: {[key in StepTypes]: () => void} = {};
 
 const processConditions = (
-  currentSteps,
-  time,
-  events,
-  modifiers,
-  currRes,
-  resPatches,
-  addToEntityIfNotFinished
+  currentSteps: Step[],
+  time: number,
+  events: Set<string>,
+  modifiers: Modifiers,
+  currRes: Res,
+  resPatches: EnhancedResPatches,
+  addToEntityIfNotFinished: boolean
 ) => {
-  const queueNewSteps = [];
+  const queueNewSteps: Step[] = [];
   currentSteps.forEach((step, i) => {
     if (isStepCompleted(step, events, modifiers, currRes)) {
       onFinishStep[step.desc.type]();
@@ -153,10 +170,10 @@ const processConditions = (
   });
 
   while (queueNewSteps.length) {
-    const step = queueNewSteps.shift();
+    const step = queueNewSteps.shift() as Step;
     if (isStepCompleted(step, events, modifiers, currRes)) {
       onFinishStep[step.desc.type]();
-      queueNewSteps(getNextStep(step.entity, resPatches, time));
+      queueNewSteps.push(getNextStep(step.entity, resPatches, time));
     } else {
       currentSteps.push(step);
     }
@@ -166,19 +183,17 @@ const processConditions = (
 const enhanceRessources = (resPatches: ResPatches, modifiers: Modifiers) => {
   const enhanced: EnhancedResPatches = {};
   Object.entries(resPatches).forEach(([id, res]) => {
+    const {activity, amount} = resPerUnit[res.type];
     enhanced[id] = {
       ...res,
-      resType: villGatheringData[res.type].ressource,
-      remaining:
-        resPerUnit[res.subtype || res.type] *
-        (res.count || 1) *
-        modifiers.ressourceDurationMultiplier,
+      resType: villGatheringData[activity].ressource,
+      remaining: amount * ("count" in res ? res.count : 1) * modifiers.ressourceDurationMultiplier,
     };
   });
   return enhanced;
 };
 
-const canAfford = (currRes, cost) => {
+const canAfford = (currRes: Res, cost: Res) => {
   return (
     currRes.food >= cost.food &&
     currRes.wood >= cost.wood &&
@@ -202,28 +217,34 @@ const conditionFulfilled = {
   },
 };
 
-const isStepCompleted = (step, events, modifiers, currRes) =>
+const isStepCompleted = (step: Step, events: Set<string>, modifiers: Modifiers, currRes: Res) =>
   step.desc.until.some(cond => conditionFulfilled[cond.type]({cond, events, modifiers, currRes}));
 
-export const simulateGame = (instructions, duration, modifiers) => {
-  let currRes = cloneRes(instructions.starting);
-  const resHistory = [];
+export const simulateGame = (
+  instructions: Instructions,
+  duration: number,
+  modifiers: Modifiers
+) => {
+  let currRes = cloneRes(instructions.startingRes);
+  const resHistory: Res[] = [];
 
   const resPatches = enhanceRessources(instructions.resPatches, modifiers);
+  const decayableRes: {
+    [id: string]: {decayRate: number; hasBeenTouched: boolean; patch: EnhancedResPatch};
+  } = {};
   Object.entries(resPatches).forEach(([id, res]) => {
-    const decayRate = decayRates[res.type];
-    if (decayRate) {
+    if (res.type in decayRates) {
       decayableRes[id] = {
-        decayRate,
+        decayRate: decayRates[res.type as keyof typeof decayRates],
         hasBeenTouched: false,
         patch: res,
       };
     }
   });
 
-  const entities = {};
-  const currentSteps = [];
-  Object.entries(instructions.entites).forEach(([id, {type}]) => {
+  const entities: {[id: string]: Entity} = {};
+  const currentSteps: Step[] = [];
+  Object.entries(instructions.entities).forEach(([id, {type}]) => {
     const entity = {
       type,
       createdAt: 0,
@@ -238,7 +259,6 @@ export const simulateGame = (instructions, duration, modifiers) => {
   const events = new Set();
   processConditions(currentSteps, 0, events, modifiers, currRes, resPatches, true);
 
-  const decayableRes = {};
   const constructions = {};
 
   /*
