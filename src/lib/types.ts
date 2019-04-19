@@ -1,6 +1,7 @@
-import {Buildings, Units, Technologies} from "./entities";
+import {buildings, units, technologies} from "./entities";
 
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
+export type FindByType<ObjWithType, Type> = ObjWithType extends {type: Type} ? ObjWithType : never;
 
 export type Res = {food: number; wood: number; gold: number; stone: number};
 
@@ -13,6 +14,10 @@ type ResPatchWithoutCount = {
   type: "boar" | "wood" | "gold" | "stone";
   distance: number;
 };
+
+export type Buildings = keyof typeof buildings;
+export type Units = keyof typeof units;
+export type Technologies = keyof typeof technologies;
 
 export type GatherTypes =
   | "foraging"
@@ -52,13 +57,20 @@ export type Task = RawTasks & {
   until?: Until;
 };
 
-type RawStepDescs = {type: "gather"};
-export type StepTypes = PropType<RawStepDescs, "type">;
+type RawStepDesc =
+  | {type: "gather"; resId: string; resType: PropType<ResPatch, "type">}
+  | {type: "build"; building: Buildings; id: string}
+  | {type: "walk"; luringBoarId?: string; endLocation: number; remainingDistance: number}
+  | {type: "wait"}
+  | {type: "train"; unit: string; id: string; remainingTime: number}
+  | {type: "research"; technology: string; remainingTime: number};
+export type StepDesc = RawStepDesc & {
+  until?: Until[];
+};
+export type StepTypes = PropType<StepDesc, "type">;
 
 export type Step = {
-  desc: RawStepDescs & {
-    until: Until[];
-  };
+  desc: StepDesc;
   entity: Entity;
   start: number;
 };

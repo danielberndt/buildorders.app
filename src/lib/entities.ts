@@ -1,11 +1,13 @@
-export const buildings = {
+import {Res} from "./types";
+
+const rawBuildings = {
   house: {
     cost: {wood: 25},
-    contructionTime: 25,
+    constructionTime: 25,
   },
   lumbercamp: {
     cost: {wood: 100},
-    contructionTime: 35,
+    constructionTime: 35,
   },
   towncenter: {
     cost: {wood: 275, stone: 100},
@@ -21,18 +23,22 @@ export const buildings = {
   },
 };
 
-export type Buildings = keyof typeof buildings;
+export const buildings = rawBuildings as {
+  [K in keyof typeof rawBuildings]: {cost: Partial<Res>; constructionTime: number}
+};
 
-export const units = {
+const rawUnits = {
   villager: {
     cost: {food: 50},
     trainingTime: 25,
   },
 };
 
-export type Units = keyof typeof units;
+export const units = rawUnits as {
+  [K in keyof typeof rawUnits]: {cost: Partial<Res>; trainingTime: number}
+};
 
-export const technologies = {
+const rawTechnologies = {
   loom: {
     cost: {gold: 50},
     researchTime: 999,
@@ -43,4 +49,6 @@ export const technologies = {
   },
 };
 
-export type Technologies = keyof typeof technologies;
+export const technologies = rawTechnologies as {
+  [K in keyof typeof rawTechnologies]: {cost: Partial<Res>; researchTime: number}
+};
