@@ -58,14 +58,15 @@ export type Task = RawTasks & {
 };
 
 type RawStepDesc =
-  | {type: "gather"; resId: string; resType: PropType<ResPatch, "type">}
+  | {type: "gather"; resId: string; activity: GatherTypes}
   | {type: "build"; building: Buildings; id: string}
   | {type: "walk"; luringBoarId?: string; endLocation: number; remainingDistance: number}
   | {type: "wait"}
-  | {type: "train"; unit: string; id: string; remainingTime: number}
-  | {type: "research"; technology: string; remainingTime: number};
+  | {type: "train"; unit: Units; id: string; remainingTime: number}
+  | {type: "research"; technology: Technologies; remainingTime: number};
+
 export type StepDesc = RawStepDesc & {
-  until?: Until[];
+  until: Until[];
 };
 export type StepTypes = PropType<StepDesc, "type">;
 
@@ -89,3 +90,6 @@ export type Instructions = {
   entities: {[id: string]: {type: Units | Buildings}};
   tasks: {[id: string]: Task[]};
 };
+
+export type Construction = {builders: number; timeLeft: number; building: Buildings};
+export type Constructions = {[id: string]: Construction};
