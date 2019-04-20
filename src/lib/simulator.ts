@@ -398,6 +398,7 @@ export const simulateGame = (
             timeLeft: constructionTime,
             building,
             isDepositAtRes,
+            distance: step.entity.distanceFromTC || 0,
           };
           subtractInPlace(state.currRes, cost);
         }
@@ -474,21 +475,31 @@ export const simulateGame = (
       if (construction.timeLeft <= 0) {
         state.events.add(`buldingFinish-${id}`);
         // maybe mark "resAt" ressource as non-tc walkable
-        const entity = addEntity({
-          id,
-          type: construction.building,
-          tasks: instructions.tasks[id] || [],
-          distanceFromTC: null,
-          state,
-        });
-        state.entities[id] = entity;
-        const firstStep = entity.steps[0];
-        if (firstStep.desc.until.length) state.currentSteps.push(firstStep);
-        delete state.constructions[id];
+        if (construction.building === "farm") {
+          state.resPatches[id] = {
+            type: "farm",
+            distance: construction.distance,
+            resType: "food",
+            remaining: resPerUnit.farm.amount,
+            hasDeposit: false,
+          };
+        } else {
+          const entity = addEntity({
+            id,
+            type: construction.building,
+            tasks: instructions.tasks[id] || [],
+            distanceFromTC: null,
+            state,
+          });
+          state.entities[id] = entity;
+          const firstStep = entity.steps[0];
+          if (firstStep.desc.until.length) state.currentSteps.push(firstStep);
 
-        if (construction.isDepositAtRes) {
-          state.resPatches[construction.isDepositAtRes].hasDeposit = true;
+          if (construction.isDepositAtRes) {
+            state.resPatches[construction.isDepositAtRes].hasDeposit = true;
+          }
         }
+        delete state.constructions[id];
       }
     }
     for (let i = 0; i < state.currentSteps.length; i += 1) {

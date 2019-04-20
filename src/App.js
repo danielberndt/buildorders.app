@@ -1,8 +1,9 @@
 import React from "react";
 import {createArrayWith} from "./lib/range";
 import {taskInfo} from "./lib/info";
-import {calcRessources} from "./lib/simulator";
+import {simulateGame} from "./lib/simulator";
 import {getDefaultModifiers} from "./lib/defaultModifiers";
+import scoutInstructions from "./instructions/scouts";
 
 function getNodePosition(node) {
   if (!node) return null;
@@ -41,18 +42,18 @@ const Timeline = ({totalSeconds, pixelsPerSecond}) => {
   );
 };
 
-const Task = ({task, pixelsPerSecond}) => {
-  const {duration, type, meta} = task;
-  const info = type === "gather" ? taskInfo.gather[meta.type] : taskInfo[type];
+const Step = ({step, duration, pixelsPerSecond}) => {
+  const {desc} = step;
+  const info = (desc.type === "gather" ? taskInfo[desc.activity] : taskInfo[desc.type]) || {};
   return (
     <div css={{height: duration * pixelsPerSecond, backgroundColor: info.color, color: "white"}}>
-      {type.slice(0, 1)}
+      {desc.type.slice(0, 1)}
     </div>
   );
 };
 
-const Entity = ({entity, pixelsPerSecond}) => {
-  const {type, createdAt, tasks} = entity;
+const Entity = ({entity, pixelsPerSecond, totalDuration}) => {
+  const {type, createdAt, steps} = entity;
   return (
     <div css={{display: "flex", flexDirection: "column", marginRight: "0.25rem"}}>
       {createdAt > 0 && <div css={{height: createdAt * pixelsPerSecond}} />}
@@ -71,153 +72,23 @@ const Entity = ({entity, pixelsPerSecond}) => {
             {type.slice(0, 1)}
           </div>
         </div>
-        {tasks.map((task, i) => (
-          <Task key={i} task={task} pixelsPerSecond={pixelsPerSecond} />
-        ))}
+        {steps.map((step, i) => {
+          const duration = (i + 1 < steps.length ? steps[i + 1].start : totalDuration) - step.start;
+          return <Step key={i} step={step} pixelsPerSecond={pixelsPerSecond} duration={duration} />;
+        })}
       </div>
     </div>
   );
 };
 
-const buildingDuration = (n, origDuration) => Math.ceil((3 * origDuration) / (n + 2));
-
-const entities = [
-  {
-    id: 1,
-    type: "townCenter",
-    createdAt: 0,
-    createdBy: null,
-    tasks: [
-      {start: 0, duration: 25, type: "create", meta: {createType: "villager"}},
-      {start: 25, duration: 25, type: "create", meta: {createType: "villager"}},
-      {start: 50, duration: 25, type: "create", meta: {createType: "villager"}},
-      {start: 75, duration: 25, type: "create", meta: {createType: "villager"}},
-      {start: 100, duration: 25, type: "create", meta: {createType: "villager"}},
-    ],
-  },
-  {
-    id: 2,
-    type: "villager",
-    createdAt: 0,
-    createdBy: 213,
-    tasks: [
-      {start: 0, duration: 5, type: "walk"},
-      {
-        start: 5,
-        duration: buildingDuration(2, 25),
-        type: "build",
-        meta: {builderIds: [2, 3], buildingType: "house", createdByMe: true},
-      },
-      {start: 5 + 19, duration: 15, type: "walk"},
-      {start: 5 + 19 + 15, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
-    ],
-  },
-  {
-    id: 3,
-    type: "villager",
-    createdAt: 0,
-    createdBy: null,
-    tasks: [
-      {start: 0, duration: 5, type: "walk"},
-      {
-        start: 5,
-        duration: buildingDuration(2, 25),
-        type: "build",
-        meta: {builderIds: [2, 3], buildingType: "house", createdByMe: false},
-      },
-      {start: 5 + 19, duration: 15, type: "walk"},
-      {start: 5 + 19 + 15, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
-    ],
-  },
-  {
-    id: 4,
-    type: "villager",
-    createdAt: 0,
-    createdBy: null,
-    tasks: [
-      {start: 0, duration: 5, type: "walk"},
-      {
-        start: 5,
-        duration: buildingDuration(1, 25),
-        type: "build",
-        meta: {builderIds: [4], buildingType: "house", createdByMe: true},
-      },
-      {start: 5 + 25, duration: 25, type: "walk"},
-      {start: 5 + 25 + 25, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
-    ],
-  },
-  {
-    id: 5,
-    type: "villager",
-    createdAt: 25,
-    createdBy: 1,
-    tasks: [
-      {start: 25, duration: 5, type: "walk"},
-      {start: 25 + 5, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
-    ],
-  },
-  {
-    id: 6,
-    type: "villager",
-    createdAt: 50,
-    createdBy: 1,
-    tasks: [
-      {start: 50, duration: 5, type: "walk"},
-      {start: 50 + 5, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
-    ],
-  },
-  {
-    id: 7,
-    type: "villager",
-    createdAt: 75,
-    createdBy: 1,
-    tasks: [
-      {start: 75, duration: 5, type: "walk"},
-      {start: 75 + 5, duration: 240, type: "gather", meta: {type: "sheep", distance: 0.5}},
-    ],
-  },
-  {
-    id: 8,
-    type: "villager",
-    createdAt: 100,
-    createdBy: 1,
-    tasks: [
-      {start: 100, duration: 15, type: "walk"},
-      {
-        start: 100 + 15,
-        duration: 35,
-        type: "build",
-        meta: {builderIds: [8], buildingType: "lumberCamp", createdByMe: true},
-      },
-      {start: 100 + 15 + 35, duration: 200, type: "gather", meta: {type: "wood", distance: 2}},
-    ],
-  },
-  {
-    id: 9,
-    type: "villager",
-    createdAt: 125,
-    createdBy: 1,
-    tasks: [
-      {start: 125, duration: 15, type: "walk"},
-      {start: 125 + 15, duration: 200 - 35, type: "gather", meta: {type: "wood", distance: 2}},
-    ],
-  },
-];
-
 const resTypes = ["food", "wood", "gold", "stone"];
 
-const totalDuration = 360;
+const totalDuration = 600;
 
-const resBySecond = calcRessources(
-  entities,
-  {
-    food: 200,
-    wood: 200,
-    gold: 100,
-    stone: 200,
-  },
+const {resHistory, entities} = simulateGame(
+  scoutInstructions,
   totalDuration,
-  getDefaultModifiers()
+  getDefaultModifiers().darkAge
 );
 
 const App = () => {
@@ -235,7 +106,7 @@ const App = () => {
           Math.max(0, Math.round((-scrollPos + bufferFromStart) / pixelsPerSecond))
         );
 
-  const currentRes = resBySecond[currentTime];
+  const currentRes = resHistory[currentTime];
 
   return (
     <div>
@@ -270,9 +141,20 @@ const App = () => {
           />
           <div css={{display: "flex"}}>
             <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
-            {entities.map(entity => (
-              <Entity key={entity.id} entity={entity} pixelsPerSecond={pixelsPerSecond} />
-            ))}
+            {React.useMemo(
+              () =>
+                Object.values(entities)
+                  .filter(entity => entity.steps.some(s => s.desc.type !== "wait"))
+                  .map(entity => (
+                    <Entity
+                      key={entity.id}
+                      entity={entity}
+                      pixelsPerSecond={pixelsPerSecond}
+                      totalDuration={totalDuration}
+                    />
+                  )),
+              [entities, totalDuration, pixelsPerSecond]
+            )}
           </div>
         </div>
         <div css={{height: "100vh"}} />

@@ -1,4 +1,4 @@
-import {GatherTypes, Res, ResPatch, PropType} from "./types";
+import {GatherTypes, Res, ResPatch, PropType, StepTypes, Omit} from "./types";
 
 export const villGatheringData: {
   [key in GatherTypes]: {rawGatheringPerS: number; carryingCapacity: number; ressource: keyof Res}
@@ -24,6 +24,7 @@ export const resPerUnit: {
   gold: {amount: 800, activity: "miningGold"},
   stone: {amount: 350, activity: "miningStone"},
   stragglers: {amount: 100, activity: "cuttingWood"},
+  farm: {amount: 175, activity: "farming"},
 };
 
 export const decayRates = {
@@ -32,17 +33,22 @@ export const decayRates = {
   boar: 0.4,
 };
 
-export const taskInfo = {
-  create: {
-    color: "blue",
-  },
+type TaskKeys = Exclude<StepTypes, "gather"> & GatherTypes;
+type TaskInfo = {[P in TaskKeys]: {color: string}};
+
+export const taskInfo: TaskInfo = {
+  build: {color: "blue"},
   walk: {color: "gray"},
-  build: {color: "purple"},
-  gather: {
-    sheep: {color: "red"},
-    wood: {color: "green"},
-  },
-  wait: {
-    color: "light-gray",
-  },
+  wait: {color: "lightgray"},
+  train: {color: "blue"},
+  research: {color: "purple"},
+
+  foraging: {color: "red"},
+  eatingSheep: {color: "white"},
+  hunting: {color: "brown"},
+  fishing: {color: "cyan"},
+  farming: {color: "orange"},
+  cuttingWood: {color: "darkgreen"},
+  miningGold: {color: "gold"},
+  miningStone: {color: "darkgray"},
 };

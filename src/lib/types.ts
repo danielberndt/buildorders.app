@@ -1,5 +1,6 @@
 import {buildings, units, technologies} from "./entities";
 
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 export type FindByType<ObjWithType, Type> = ObjWithType extends {type: Type} ? ObjWithType : never;
 
@@ -11,7 +12,7 @@ type ResPatchWithCount = {
   distance: number;
 };
 type ResPatchWithoutCount = {
-  type: "boar" | "wood" | "gold" | "stone";
+  type: "boar" | "wood" | "gold" | "stone" | "farm";
   distance: number;
 };
 
@@ -101,5 +102,6 @@ export type Construction = {
   timeLeft: number;
   building: Buildings;
   isDepositAtRes: string | null;
+  distance: number;
 };
 export type Constructions = {[id: string]: Construction};

@@ -519,4 +519,40 @@ Array [
 `);
 });
 
-// build lumberCamp, check distance
+test("build a farm and gather from it", () => {
+  const instructions: Instructions = {
+    startingRes: {...nullRes, wood: 100},
+    resPatches: {},
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "build", building: "farm", id: "f1", distance: 0}, {type: "gather", resId: "f1"}],
+    },
+  };
+  const {resHistory, entities} = simulateGame(instructions, 100, defaultModifiers);
+  expect(resHistory[99]).toMatchInlineSnapshot(`
+Object {
+  "food": 28.058823529411733,
+  "gold": 0,
+  "stone": 0,
+  "wood": 40,
+}
+`);
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 3,
+    "type": "build",
+  },
+  Object {
+    "start": 18,
+    "type": "gather",
+  },
+]
+`);
+});
