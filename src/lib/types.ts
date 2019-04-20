@@ -39,7 +39,7 @@ export type ResPatches = {[id: string]: ResPatch};
 export type EnhancedResPatches = {[id: string]: EnhancedResPatch & ResPatch};
 
 export type Until =
-  | {type: "buildRes"; building: Buildings}
+  | {type: "buildRes"; entity: Buildings | Units | Technologies}
   | {type: "event"; name: string}
   | {type: "atTarget"};
 
@@ -60,7 +60,9 @@ export type Task = RawTasks & {
 type RawStepDesc =
   | {type: "gather"; resId: string; activity: GatherTypes}
   | {type: "build"; building: Buildings; id: string}
-  | {type: "walk"; luringBoarId?: string; endLocation: number; remainingDistance: number}
+  | {type: "walk"; endLocation: number; remainingDistance: number} & (
+      | {luringBoarId: string}
+      | {targetTask: Task})
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
   | {type: "research"; technology: Technologies; remainingTime: number};
@@ -77,11 +79,13 @@ export type Step = {
 };
 
 export type Entity = {
+  id: string;
   type: Units | Buildings;
   createdAt: number;
   steps: Step[];
   remainingTasks: Task[];
   distanceFromTC: number | null;
+  atTaskLocation: Task | null;
 };
 
 export type Instructions = {

@@ -24,7 +24,7 @@ const scoutInstructions: Instructions = {
 
   tasks: {
     v1: [
-      {type: "build", building: "house", distance: 1, id: "h1"},
+      {type: "build", building: "house", distance: 4, id: "h1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
       {type: "gather", resId: "boar1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
@@ -32,7 +32,7 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep"},
     ],
     v2: [
-      {type: "build", building: "house", distance: 1, id: "h1"},
+      {type: "build", building: "house", distance: 4, id: "h1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
       {type: "gather", resId: "boar1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
@@ -40,7 +40,7 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep"},
     ],
     v3: [
-      {type: "build", building: "house", distance: 1, id: "h2"},
+      {type: "build", building: "house", distance: 4, id: "h2"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
       {type: "gather", resId: "boar1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
@@ -82,7 +82,7 @@ const scoutInstructions: Instructions = {
 
     v10: [
       {type: "lure", boarId: "boar1"},
-      {type: "gather", resId: "boar1", until: {type: "buildRes", building: "farm"}},
+      {type: "gather", resId: "boar1", until: {type: "buildRes", entity: "farm"}},
       {type: "build", building: "farm", id: "f1", distance: 0},
       {type: "gather", resId: "f1"},
     ],
@@ -94,8 +94,8 @@ const scoutInstructions: Instructions = {
 
     v15: [
       {type: "lure", boarId: "boar2"},
-      {type: "gather", resId: "boar2", until: {type: "buildRes", building: "farm"}},
-      {type: "gather", resId: "sheep", until: {type: "buildRes", building: "farm"}},
+      {type: "gather", resId: "boar2", until: {type: "buildRes", entity: "farm"}},
+      {type: "gather", resId: "sheep", until: {type: "buildRes", entity: "farm"}},
       {type: "build", building: "farm", id: "f2", distance: 0},
       {type: "gather", resId: "f2"},
     ],

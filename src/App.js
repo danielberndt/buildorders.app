@@ -1,7 +1,7 @@
 import React from "react";
 import {createArrayWith} from "./lib/range";
 import {taskInfo} from "./lib/info";
-import {calcRessources} from "./lib/calc-ressources";
+import {calcRessources} from "./lib/simulator";
 import {getDefaultModifiers} from "./lib/defaultModifiers";
 
 function getNodePosition(node) {
