@@ -32,6 +32,7 @@ export type GatherTypes =
 export type EnhancedResPatch = {
   resType: keyof Res;
   remaining: number;
+  hasDeposit: boolean;
 };
 export type ResPatch = ResPatchWithCount | ResPatchWithoutCount;
 
@@ -59,7 +60,7 @@ export type Task = RawTasks & {
 
 type RawStepDesc =
   | {type: "gather"; resId: string; activity: GatherTypes}
-  | {type: "build"; building: Buildings; id: string}
+  | {type: "build"; building: Buildings; isDepositAtRes: string | null; id: string}
   | {type: "walk"; endLocation: number; remainingDistance: number} & (
       | {luringBoarId: string}
       | {targetTask: Task})
@@ -95,5 +96,10 @@ export type Instructions = {
   tasks: {[id: string]: Task[]};
 };
 
-export type Construction = {builders: number; timeLeft: number; building: Buildings};
+export type Construction = {
+  builders: number;
+  timeLeft: number;
+  building: Buildings;
+  isDepositAtRes: string | null;
+};
 export type Constructions = {[id: string]: Construction};

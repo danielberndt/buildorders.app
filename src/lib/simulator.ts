@@ -108,6 +108,7 @@ const taskToStepDesc: TaskToStepDesc = {
       type,
       building,
       id,
+      isDepositAtRes: "atRes" in task ? task.atRes : null,
       until: [{type: "event", name: `buldingFinish-${id}`}],
     };
   },
@@ -165,7 +166,7 @@ const taskToStepDesc: TaskToStepDesc = {
 const euclidianDist = (d1: number, d2: number) => (d1 * d1 + d2 * d2) ** 0.5;
 
 const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
-  const nextTask = entity.remainingTasks[0] || {type: "wait"};
+  const nextTask = entity.remainingTasks.shift() || {type: "wait"};
   // check if we need to walk there first
   const distanceFn = taskToDistance[nextTask.type];
   if (nextTask !== entity.atTaskLocation && distanceFn && entity.distanceFromTC !== null) {
@@ -177,13 +178,12 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
         endLocation: taskDistFromTc,
         remainingDistance: walkDist,
         targetTask: nextTask,
-        until: [{type: "atTarget"}],
+        until: [...(nextTask.until ? [nextTask.until] : []), {type: "atTarget"}],
       };
     } else {
       entity.atTaskLocation = nextTask;
     }
   }
-  entity.remainingTasks.shift();
   return taskToStepDesc[nextTask.type]({
     entity,
     task: nextTask as any,
@@ -192,28 +192,37 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
 };
 
 const getNextStep = (entity: Entity, state: State): Step => {
-  const taskDesc = getNextStepDesc(entity, state);
-  if (taskDesc.type === "train") {
+  const stepDesc = getNextStepDesc(entity, state);
+  if (stepDesc.type === "train") {
     subtractInPlace(
       state.currRes,
-      multiply(units[taskDesc.unit].cost, state.modifiers.entities[taskDesc.unit].costMultiplier)
+      multiply(units[stepDesc.unit].cost, state.modifiers.entities[stepDesc.unit].costMultiplier)
     );
-  } else if (taskDesc.type === "research") {
+  } else if (stepDesc.type === "research") {
     subtractInPlace(
       state.currRes,
       multiply(
-        technologies[taskDesc.technology].cost,
-        state.modifiers.entities[taskDesc.technology].costMultiplier
+        technologies[stepDesc.technology].cost,
+        state.modifiers.entities[stepDesc.technology].costMultiplier
       )
     );
   }
-  return {desc: taskDesc, entity, start: state.time};
+  return {desc: stepDesc, entity, start: state.time};
 };
 
 const processConditions = (step: Step, state: State): Step => {
   let currentStep = step;
   while (isStepCompleted(currentStep, state)) {
-    currentStep = getNextStep(step.entity, state);
+    if ("targetTask" in step.desc) {
+      const nextStepDesc = taskToStepDesc[step.desc.targetTask.type]({
+        entity: step.entity,
+        task: step.desc.targetTask as any,
+        resPatches: state.resPatches,
+      });
+      currentStep = {desc: nextStepDesc, entity: step.entity, start: state.time};
+    } else {
+      currentStep = getNextStep(step.entity, state);
+    }
   }
   return currentStep;
 };
@@ -226,6 +235,7 @@ const enhanceRessources = (resPatches: ResPatches, modifiers: Modifiers) => {
     const {activity, amount} = resPerUnit[res.type];
     enhanced[id] = {
       ...res,
+      hasDeposit: false,
       resType: villGatheringData[activity].ressource,
       remaining: amount * ("count" in res ? res.count : 1) * modifiers.ressourceDurationMultiplier,
     };
@@ -380,10 +390,15 @@ export const simulateGame = (
     for (const step of state.currentSteps) {
       const {desc} = step;
       if (desc.type === "build") {
-        const {id, building} = desc;
+        const {id, building, isDepositAtRes} = desc;
         if (!state.constructions[id]) {
           const {constructionTime, cost} = buildings[building];
-          state.constructions[id] = {builders: 0, timeLeft: constructionTime, building};
+          state.constructions[id] = {
+            builders: 0,
+            timeLeft: constructionTime,
+            building,
+            isDepositAtRes,
+          };
           subtractInPlace(state.currRes, cost);
         }
         state.constructions[id].builders += 1;
@@ -406,7 +421,7 @@ export const simulateGame = (
         if (res.remaining >= 0) {
           const decayRes = decayableRes[resId];
           if (decayRes) decayRes.hasBeenTouched = true;
-          let gatherAmount = gather(activity, res.distance, modifiers);
+          let gatherAmount = gather(activity, res.hasDeposit ? 1 : res.distance, modifiers);
           res.remaining -= gatherAmount;
           if (res.remaining <= 0) {
             gatherAmount += res.remaining;
@@ -470,6 +485,10 @@ export const simulateGame = (
         const firstStep = entity.steps[0];
         if (firstStep.desc.until.length) state.currentSteps.push(firstStep);
         delete state.constructions[id];
+
+        if (construction.isDepositAtRes) {
+          state.resPatches[construction.isDepositAtRes].hasDeposit = true;
+        }
       }
     }
     for (let i = 0; i < state.currentSteps.length; i += 1) {

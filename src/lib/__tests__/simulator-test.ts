@@ -292,7 +292,7 @@ test("train vill until enough food", () => {
       sheep: {type: "sheep", count: 2, distance: 0},
     },
     entities: {
-      tc: {type: "towncenter"},
+      tc: {type: "townCenter"},
       v1: {type: "villager"},
     },
     tasks: {
@@ -393,3 +393,130 @@ Array [
 ]
 `);
 });
+
+test("do loom once enough gold", () => {
+  const instructions: Instructions = {
+    startingRes: nullRes,
+    resPatches: {
+      gold: {type: "gold", distance: 4},
+    },
+    entities: {
+      tc: {type: "townCenter"},
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "gold", until: {type: "event", name: "researchFinished-loom"}}],
+      tc: [
+        {type: "wait", until: {type: "buildRes", entity: "loom"}},
+        {type: "research", technology: "loom"},
+      ],
+    },
+  };
+  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resHistory[199]).toMatchInlineSnapshot(`
+Object {
+  "food": 0,
+  "gold": 8.88888888888896,
+  "stone": 0,
+  "wood": 0,
+}
+`);
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 6,
+    "type": "gather",
+  },
+  Object {
+    "start": 176,
+    "type": "wait",
+  },
+]
+`);
+  expect(entities.tc.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "wait",
+  },
+  Object {
+    "start": 151,
+    "type": "research",
+  },
+  Object {
+    "start": 176,
+    "type": "wait",
+  },
+]
+`);
+});
+
+test("build lumbercamp at resources means less walking", () => {
+  const instructions: Instructions = {
+    startingRes: {...nullRes, wood: 100},
+    resPatches: {
+      wood: {type: "wood", distance: 10},
+    },
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "build", building: "lumberCamp", atRes: "wood"}, {type: "gather", resId: "wood"}],
+    },
+  };
+  const {resHistory} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resHistory[199]).toMatchInlineSnapshot(`
+Object {
+  "food": 0,
+  "gold": 0,
+  "stone": 0,
+  "wood": 62.24282560706421,
+}
+`);
+});
+
+test("immediately does the right thing if several task's untils are met", () => {
+  const instructions: Instructions = {
+    startingRes: {...nullRes, wood: 100},
+    resPatches: {
+      sheep: {type: "sheep", count: 2, distance: 0},
+    },
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [
+        {type: "wait", until: {type: "buildRes", entity: "farm"}},
+        {type: "gather", resId: "sheep", until: {type: "buildRes", entity: "house"}},
+        {type: "build", building: "house", distance: 3},
+      ],
+    },
+  };
+  const {resHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
+  expect(resHistory[9]).toMatchInlineSnapshot(`
+Object {
+  "food": 0,
+  "gold": 0,
+  "stone": 0,
+  "wood": 75,
+}
+`);
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 5,
+    "type": "build",
+  },
+]
+`);
+});
+
+// build lumberCamp, check distance

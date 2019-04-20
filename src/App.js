@@ -84,7 +84,7 @@ const buildingDuration = (n, origDuration) => Math.ceil((3 * origDuration) / (n 
 const entities = [
   {
     id: 1,
-    type: "towncenter",
+    type: "townCenter",
     createdAt: 0,
     createdBy: null,
     tasks: [
@@ -187,7 +187,7 @@ const entities = [
         start: 100 + 15,
         duration: 35,
         type: "build",
-        meta: {builderIds: [8], buildingType: "lumbercamp", createdByMe: true},
+        meta: {builderIds: [8], buildingType: "lumberCamp", createdByMe: true},
       },
       {start: 100 + 15 + 35, duration: 200, type: "gather", meta: {type: "wood", distance: 2}},
     ],

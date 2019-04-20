@@ -16,7 +16,7 @@ const scoutInstructions: Instructions = {
     stone: {type: "stone", distance: 15},
   },
   entities: {
-    tc: {type: "towncenter"},
+    tc: {type: "townCenter"},
     v1: {type: "villager"},
     v2: {type: "villager"},
     v3: {type: "villager"},
@@ -74,7 +74,7 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep"},
     ],
     v7: [
-      {type: "build", building: "lumbercamp", atRes: "woodline1"},
+      {type: "build", building: "lumberCamp", atRes: "woodline1"},
       {type: "gather", resId: "woodline1"},
     ],
     v8: [{type: "gather", resId: "woodline1"}],
@@ -110,7 +110,7 @@ const scoutInstructions: Instructions = {
     v19: [{type: "gather", resId: "woodline1"}],
     v20: [{type: "gather", resId: "woodline1"}],
     v21: [
-      {type: "build", building: "lumbercamp", atRes: "woodline2"},
+      {type: "build", building: "lumberCamp", atRes: "woodline2"},
       {type: "gather", resId: "woodline2"},
     ],
 
