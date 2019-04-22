@@ -1,8 +1,8 @@
 import {createArrayWith} from "../lib/range";
-import {Instructions, Task} from "../lib/types";
+import {Instructions, Task} from "../simulator/types";
 
 const scoutInstructions: Instructions = {
-  startingRes: {food: 200, gold: 200, wood: 200, stone: 200},
+  startingRes: {food: 200, wood: 200, gold: 100, stone: 200},
   resPatches: {
     berries: {type: "berries", count: 6, distance: 10},
     sheep: {type: "sheep", count: 8, distance: 0},

@@ -72,7 +72,12 @@ const rawBuildings = {
 };
 
 export const buildings = rawBuildings as {
-  [K in keyof typeof rawBuildings]: {icon: string, cost: Res; constructionTime: number; startAge: Ages}
+  [K in keyof typeof rawBuildings]: {
+    icon: string;
+    cost: Res;
+    constructionTime: number;
+    startAge: Ages;
+  }
 };
 
 const rawUnits = {
@@ -108,7 +113,7 @@ const rawUnits = {
 
 export const units = rawUnits as {
   [K in keyof typeof rawUnits]: {
-    icon: string,
+    icon: string;
     cost: Res;
     trainingTime: number;
     trainedIn: keyof typeof rawBuildings;
@@ -132,5 +137,10 @@ const rawTechnologies = {
 };
 
 export const technologies = rawTechnologies as {
-  [K in keyof typeof rawTechnologies]: {icon: string, cost: Res; researchTime: number; startAge: Ages}
+  [K in keyof typeof rawTechnologies]: {
+    icon: string;
+    cost: Res;
+    researchTime: number;
+    startAge: Ages;
+  }
 };

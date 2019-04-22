@@ -1,5 +1,5 @@
 import {getDefaultModifiers} from "../defaultModifiers";
-import {simulateGame} from "../simulator";
+import {simulateGame} from "..";
 import {Res, Instructions} from "../types";
 
 const nullRes: Res = {wood: 0, food: 0, gold: 0, stone: 0};
