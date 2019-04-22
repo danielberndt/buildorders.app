@@ -32,23 +32,3 @@ export const decayRates = {
   deer: 0.25,
   boar: 0.4,
 };
-
-type TaskKeys = Exclude<StepTypes, "gather"> & GatherTypes;
-type TaskInfo = {[P in TaskKeys]: {color: string}};
-
-export const taskInfo: TaskInfo = {
-  build: {color: "blue"},
-  walk: {color: "gray"},
-  wait: {color: "lightgray"},
-  train: {color: "blue"},
-  research: {color: "purple"},
-
-  foraging: {color: "red"},
-  eatingSheep: {color: "white"},
-  hunting: {color: "brown"},
-  fishing: {color: "cyan"},
-  farming: {color: "orange"},
-  cuttingWood: {color: "darkgreen"},
-  miningGold: {color: "gold"},
-  miningStone: {color: "darkgray"},
-};

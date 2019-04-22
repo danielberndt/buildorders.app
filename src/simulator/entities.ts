@@ -148,4 +148,15 @@ export const technologies = rawTechnologies as {
   }
 };
 
+export const ressources = {
+  boar: {icon: require("../images/ressources/boar.png")},
+  sheep: {icon: require("../images/ressources/sheep.png")},
+  deer: {icon: require("../images/ressources/deer.png")},
+  berries: {icon: require("../images/ressources/berries.png")},
+  gold: {icon: require("../images/ressources/gold.png")},
+  stone: {icon: require("../images/ressources/stone.png")},
+  wood: {icon: require("../images/ressources/wood.png")},
+  farm: {icon: require("../images/buildings/dark-age/farm.png")},
+};
+
 export const allEntities = {...units, ...buildings, ...technologies};

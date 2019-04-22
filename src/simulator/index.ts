@@ -121,6 +121,7 @@ const taskToStepDesc: TaskToStepDesc = {
       type,
       resId,
       activity,
+      resType: res.type,
       until: [...(until ? [until] : []), {type: "event", name: `resDepleted-${resId}`}],
     };
   },

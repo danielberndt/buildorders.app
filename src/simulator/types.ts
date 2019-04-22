@@ -60,7 +60,7 @@ export type Task = RawTasks & {
 };
 
 type RawStepDesc =
-  | {type: "gather"; resId: string; activity: GatherTypes}
+  | {type: "gather"; resId: string; resType: string; activity: GatherTypes}
   | {type: "build"; building: Buildings; isDepositAtRes: string | null; id: string}
   | {type: "walk"; endLocation: number; remainingDistance: number} & (
       | {luringBoarId: string}

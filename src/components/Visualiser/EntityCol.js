@@ -1,18 +1,79 @@
 import React from "react";
-import {taskInfo} from "../../simulator/info";
-import {allEntities} from "../../simulator/entities";
+import {allEntities, ressources} from "../../simulator/entities";
 import css from "@emotion/css";
 import {Col} from "../../style/layout";
-import {Text} from "../../style/text";
+
+const getIcon = (entity, id) => {
+  const {icon: rawIcon} = allEntities[entity];
+  return Array.isArray(rawIcon) ? rawIcon[hashToInt(id) % rawIcon.length] : rawIcon;
+};
+
+const iconStyle = css({display: "block", width: "100%", height: "auto"});
+
+const TrainStep = ({height, desc}) => (
+  <Col css={{height}} bg="blue_200">
+    <img src={getIcon(desc.unit, desc.id)} alt={desc.unit} title={desc.unit} css={iconStyle} />
+  </Col>
+);
+
+const ResearchStep = ({height, desc: {technology, id}}) => (
+  <Col css={{height}} bg="purple_200">
+    <img src={getIcon(technology, id)} alt={technology} title={technology} css={iconStyle} />
+  </Col>
+);
+
+const BuildStep = ({height, desc: {building, id}}) => (
+  <Col css={{height}} bg="indigo_200">
+    <img src={getIcon(building, id)} alt={building} title={building} css={iconStyle} />
+  </Col>
+);
+
+const WalkStep = ({height, desc: {luringBoarId}}) => (
+  <Col css={{height}} bg="gray_500">
+    {luringBoarId && (
+      <img src={ressources.boar.icon} alt="Luring boar" title="Luring boar" css={iconStyle} />
+    )}
+  </Col>
+);
+
+const WaitStep = ({height}) => <Col css={{height}} bg="gray_600" />;
+
+const resTypeInfo = {
+  berries: {icon: ressources.berries.icon, color: "red_500"},
+  sheep: {icon: ressources.sheep.icon, color: "red_100"},
+  deer: {icon: ressources.deer.icon, color: "red_500"},
+  // TODO: find straggler icon
+  stragglers: {icon: ressources.wood.icon, color: "red_300"},
+  boar: {icon: ressources.boar.icon, color: "red_500"},
+  wood: {icon: ressources.wood.icon, color: "green_300"},
+  gold: {icon: ressources.gold.icon, color: "red_300"},
+  stone: {icon: ressources.stone.icon, color: "red_300"},
+  farm: {icon: ressources.farm.icon, color: "orange_300"},
+};
+
+const GatherStep = ({height, desc: {resType, activity}}) => {
+  const info = resTypeInfo[resType];
+  return (
+    <Col css={{height}} bg={info.color}>
+      <img src={info.icon} alt={resType} title={resType} css={iconStyle} />
+    </Col>
+  );
+};
+
+const stepComps = {
+  train: TrainStep,
+  research: ResearchStep,
+  build: BuildStep,
+  walk: WalkStep,
+  wait: WaitStep,
+  gather: GatherStep,
+};
 
 const Step = ({step, duration, pixelsPerSecond}) => {
   const {desc} = step;
-  const info = (desc.type === "gather" ? taskInfo[desc.activity] : taskInfo[desc.type]) || {};
-  return (
-    <div css={{height: duration * pixelsPerSecond, backgroundColor: info.color, color: "white"}}>
-      {desc.type.slice(0, 1)}
-    </div>
-  );
+  const height = duration * pixelsPerSecond;
+  const StepComp = stepComps[desc.type];
+  return <StepComp height={height} desc={desc} />;
 };
 
 const topStyle = css({position: "sticky", top: "2.8rem"});
@@ -36,38 +97,27 @@ const hashToInt = val => {
   return hash;
 };
 
-const Top = ({type, id}) => {
-  const {icon: rawIcon} = allEntities[type];
-  const icon = Array.isArray(rawIcon) ? rawIcon[hashToInt(id) % rawIcon.length] : rawIcon;
-  return (
-    <div css={topStyle}>
-      <Col css={topInnerStyle} style={{backgroundImage: `url(${icon})`}} />
-    </div>
-  );
-};
+const Top = ({type, id}) => (
+  <div css={topStyle}>
+    <Col css={topInnerStyle} style={{backgroundImage: `url(${getIcon(type, id)})`}} />
+  </div>
+);
+
+const colStyle = css({position: "relative", width: "1rem"});
 
 const EntityCol = ({entity, pixelsPerSecond, totalDuration}) => {
   const {type, createdAt, id, steps} = entity;
   return (
-    <div css={{display: "flex", flexDirection: "column", marginRight: "0.25rem"}}>
+    <Col>
       {createdAt > 0 && <div css={{height: createdAt * pixelsPerSecond}} />}
-      <div
-        css={{
-          flex: "auto",
-          backgroundColor: "yellow",
-          position: "relative",
-          width: "1rem",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <Col fillParent bg="gray_400" css={colStyle}>
         <Top type={type} id={id} />
         {steps.map((step, i) => {
           const duration = (i + 1 < steps.length ? steps[i + 1].start : totalDuration) - step.start;
           return <Step key={i} step={step} pixelsPerSecond={pixelsPerSecond} duration={duration} />;
         })}
-      </div>
-    </div>
+      </Col>
+    </Col>
   );
 };
 

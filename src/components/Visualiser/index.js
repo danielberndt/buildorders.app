@@ -101,7 +101,7 @@ const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
       <div css={{height: bufferFromStart}} />
       <Col css={{position: "relative"}} ref={containerRef} px={1}>
         <TimeIndicator />
-        <Row>
+        <Row sp={0}>
           <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
           {React.useMemo(
             () =>
