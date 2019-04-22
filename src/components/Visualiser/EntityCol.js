@@ -8,43 +8,49 @@ const getIcon = (entity, id) => {
   return Array.isArray(rawIcon) ? rawIcon[hashToInt(id) % rawIcon.length] : rawIcon;
 };
 
-const iconStyle = css({display: "block", width: "100%", height: "auto"});
+const iconStyle = css({
+  display: "block",
+  width: "100%",
+  height: "auto",
+  position: "sticky",
+  top: "2.8rem",
+});
 
 const TrainStep = ({height, desc}) => (
-  <Col css={{height}} bg="blue_200">
+  <Col css={{height, position: "relative"}} bg="blue_200">
     <img src={getIcon(desc.unit, desc.id)} alt={desc.unit} title={desc.unit} css={iconStyle} />
   </Col>
 );
 
 const ResearchStep = ({height, desc: {technology, id}}) => (
-  <Col css={{height}} bg="purple_200">
+  <Col css={{height, position: "relative"}} bg="purple_200">
     <img src={getIcon(technology, id)} alt={technology} title={technology} css={iconStyle} />
   </Col>
 );
 
 const BuildStep = ({height, desc: {building, id}}) => (
-  <Col css={{height}} bg="indigo_200">
+  <Col css={{height, position: "relative"}} bg="indigo_200">
     <img src={getIcon(building, id)} alt={building} title={building} css={iconStyle} />
   </Col>
 );
 
 const WalkStep = ({height, desc: {luringBoarId}}) => (
-  <Col css={{height}} bg="gray_500">
+  <Col css={{height, position: "relative"}} bg="gray_500">
     {luringBoarId && (
       <img src={ressources.boar.icon} alt="Luring boar" title="Luring boar" css={iconStyle} />
     )}
   </Col>
 );
 
-const WaitStep = ({height}) => <Col css={{height}} bg="gray_600" />;
+const WaitStep = ({height}) => <Col css={{height, position: "relative"}} bg="gray_600" />;
 
 const resTypeInfo = {
-  berries: {icon: ressources.berries.icon, color: "red_500"},
-  sheep: {icon: ressources.sheep.icon, color: "red_100"},
+  berries: {icon: ressources.berries.icon, color: "red_300"},
+  sheep: {icon: ressources.sheep.icon, color: "red_200"},
   deer: {icon: ressources.deer.icon, color: "red_500"},
   // TODO: find straggler icon
   stragglers: {icon: ressources.wood.icon, color: "red_300"},
-  boar: {icon: ressources.boar.icon, color: "red_500"},
+  boar: {icon: ressources.boar.icon, color: "purple_300"},
   wood: {icon: ressources.wood.icon, color: "green_300"},
   gold: {icon: ressources.gold.icon, color: "red_300"},
   stone: {icon: ressources.stone.icon, color: "red_300"},
@@ -54,7 +60,7 @@ const resTypeInfo = {
 const GatherStep = ({height, desc: {resType, activity}}) => {
   const info = resTypeInfo[resType];
   return (
-    <Col css={{height}} bg={info.color}>
+    <Col css={{height, position: "relative"}} bg={info.color}>
       <img src={info.icon} alt={resType} title={resType} css={iconStyle} />
     </Col>
   );
@@ -76,7 +82,7 @@ const Step = ({step, duration, pixelsPerSecond}) => {
   return <StepComp height={height} desc={desc} />;
 };
 
-const topStyle = css({position: "sticky", top: "2.8rem"});
+const topStyle = css({position: "sticky", top: "2.8rem", zIndex: 1});
 const topInnerStyle = css({
   position: "absolute",
   bottom: 0,
