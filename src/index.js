@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import "./global-styles";
+import "./style/global-styles";
 
 import App from "./App";
 // import * as serviceWorker from './serviceWorker';

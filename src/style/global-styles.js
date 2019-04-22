@@ -1,5 +1,6 @@
 import "normalize.css/normalize.css";
 import {injectGlobal} from "emotion";
+import tokens from "./tokens";
 
 injectGlobal`
 html {
@@ -11,6 +12,7 @@ html {
   background-repeat: no-repeat;
   font-size: 1em;
   height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 /*
@@ -32,7 +34,7 @@ For larger screen sizes this results in 1rem being greater than 16px.
 }
 
 body {
-  background-color: #333;
-  color: #eee;
+  background-color: ${tokens.colors.gray_900};
+  color: ${tokens.colors.gray_100};
 }
-`
+`;

@@ -1,9 +1,10 @@
 import React from "react";
 import {createArrayWith} from "./lib/range";
-import {taskInfo} from "./lib/info";
-import {simulateGame} from "./lib/simulator";
-import {getDefaultModifiers} from "./lib/defaultModifiers";
+import {taskInfo} from "./simulator/info";
+import {getDefaultModifiers} from "./simulator/defaultModifiers";
+import {simulateGame} from "./simulator";
 import scoutInstructions from "./instructions/scouts";
+import VisHeader from "./components/VisHeader";
 
 function getNodePosition(node) {
   if (!node) return null;
@@ -81,8 +82,6 @@ const Entity = ({entity, pixelsPerSecond, totalDuration}) => {
   );
 };
 
-const resTypes = ["food", "wood", "gold", "stone"];
-
 const totalDuration = 700;
 
 const {resHistory, entities} = simulateGame(
@@ -112,24 +111,7 @@ const App = () => {
     <div>
       <h1>Build Orders</h1>
       <div css={{position: "relative", border: "1px solid blue"}}>
-        <div
-          css={{
-            position: "sticky",
-            top: 0,
-            border: "1px solid yellow",
-            backgroundColor: "#222",
-            zIndex: 1,
-          }}
-        >
-          <div>
-            <span>time: {currentTime} </span>
-            {resTypes.map(type => (
-              <span key={type}>
-                | {type}: {Math.floor(currentRes[type])}{" "}
-              </span>
-            ))}
-          </div>
-        </div>
+        <VisHeader time={currentTime} res={currentRes} />
         <div css={{height: bufferFromStart}} />
         <div css={{position: "relative", border: "1px solid blue"}} ref={containerRef}>
           <div
