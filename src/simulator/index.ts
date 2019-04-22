@@ -19,7 +19,7 @@ import {
   Units,
 } from "./types";
 import {Modifiers} from "./defaultModifiers";
-import {units, technologies, buildings} from "./entities";
+import {units, technologies, buildings, allEntities} from "./entities";
 
 const cloneRes = (r: Res): Res => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
 
@@ -172,9 +172,12 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
   if (nextTask !== entity.atTaskLocation && distanceFn && entity.distanceFromTC !== null) {
     let walkDist: number;
     let taskDistFromTc: number;
-    if ("atRes" in nextTask && entity.atRes === nextTask.atRes || "resId" in nextTask && entity.atRes === nextTask.resId) {
-      walkDist = 3
-      taskDistFromTc = entity.distanceFromTC
+    if (
+      ("atRes" in nextTask && entity.atRes === nextTask.atRes) ||
+      ("resId" in nextTask && entity.atRes === nextTask.resId)
+    ) {
+      walkDist = 3;
+      taskDistFromTc = entity.distanceFromTC;
     } else {
       taskDistFromTc = distanceFn(nextTask as any, state.resPatches);
       walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
@@ -234,8 +237,6 @@ const processConditions = (step: Step, state: State): Step => {
   }
   return currentStep;
 };
-
-const allEntities = {...units, ...buildings, ...technologies};
 
 const enhanceRessources = (resPatches: ResPatches, modifiers: Modifiers) => {
   const enhanced: EnhancedResPatches = {};
@@ -299,7 +300,7 @@ const addEntity = (opts: {
     remainingTasks: tasks,
     distanceFromTC,
     atTaskLocation: null,
-    atRes: null
+    atRes: null,
   };
   let firstStep = getNextStep(entity, state);
   const actualStep = processConditions(firstStep, state);
@@ -424,7 +425,7 @@ export const simulateGame = (
             step.entity.atTaskLocation = null;
           } else {
             step.entity.atTaskLocation = desc.targetTask;
-            step.entity.atRes = desc.targetRes
+            step.entity.atRes = desc.targetRes;
           }
           step.entity.distanceFromTC = desc.endLocation;
         }

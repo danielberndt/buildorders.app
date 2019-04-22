@@ -82,7 +82,10 @@ export const buildings = rawBuildings as {
 
 const rawUnits = {
   villager: {
-    icon: require("../images/units/dark-age/villager-male.png"),
+    icon: [
+      require("../images/units/dark-age/villager-female.png"),
+      require("../images/units/dark-age/villager-male.png"),
+    ],
     cost: {food: 50, wood: 0, gold: 0, stone: 0},
     trainingTime: 25,
     trainedIn: "townCenter",
@@ -113,7 +116,7 @@ const rawUnits = {
 
 export const units = rawUnits as {
   [K in keyof typeof rawUnits]: {
-    icon: string;
+    icon: string | string[];
     cost: Res;
     trainingTime: number;
     trainedIn: keyof typeof rawBuildings;
@@ -144,3 +147,5 @@ export const technologies = rawTechnologies as {
     startAge: Ages;
   }
 };
+
+export const allEntities = {...units, ...buildings, ...technologies};

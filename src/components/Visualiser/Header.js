@@ -1,15 +1,14 @@
 import React from "react";
-import {colors} from "../style/tokens";
 import {css} from "@emotion/core";
-import {Row} from "../style/layout";
-import {Text} from "../style/text";
-import {formatTime} from "../lib/format";
+import {Row} from "../../style/layout";
+import {Text} from "../../style/text";
+import {formatTime} from "../../lib/format";
 
 const resTypes = [
-  {resName: "wood", icon: require("../images/ui/res-wood.png")},
-  {resName: "food", icon: require("../images/ui/res-food.png")},
-  {resName: "gold", icon: require("../images/ui/res-gold.png")},
-  {resName: "stone", icon: require("../images/ui/res-stone.png")},
+  {resName: "wood", icon: require("../../images/ui/res-wood.png")},
+  {resName: "food", icon: require("../../images/ui/res-food.png")},
+  {resName: "gold", icon: require("../../images/ui/res-gold.png")},
+  {resName: "stone", icon: require("../../images/ui/res-stone.png")},
 ];
 
 const numberStyle = css({
@@ -17,8 +16,8 @@ const numberStyle = css({
   minWidth: "2.5em",
 });
 
-const Number = ({val}) => (
-  <Text align="right" size="xs" weight="bold" css={numberStyle}>
+const Number = ({val, color = "gray_100"}) => (
+  <Text align="right" size="xs" weight="bold" css={numberStyle} color={color}>
     {val}
   </Text>
 );
@@ -35,10 +34,10 @@ const iconStyle = css({
   width: "auto",
 });
 
-const VisHeader = ({time, res}) => (
+const Header = ({time, res}) => (
   <Row bg="gray_600" elevation={1} css={stickyStyle} sp={0} px={1} py={0} align="center">
-    <Row sp={1} bg="black" pa={0}>
-      <Number val={formatTime(time)} />
+    <Row sp={1} bg="gray_800" pa={0}>
+      <Number val={formatTime(time)} color="gray_300" />
     </Row>
     {resTypes.map(({resName, icon}) => (
       <Row
@@ -55,4 +54,4 @@ const VisHeader = ({time, res}) => (
   </Row>
 );
 
-export default VisHeader;
+export default Header;
