@@ -468,14 +468,34 @@ test("build lumbercamp at resources means less walking", () => {
       v1: [{type: "build", building: "lumberCamp", atRes: "wood"}, {type: "gather", resId: "wood"}],
     },
   };
-  const {resHistory} = simulateGame(instructions, 200, defaultModifiers);
+  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
   expect(resHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
   "stone": 0,
-  "wood": 62.24282560706421,
+  "wood": 68.79470198675513,
 }
+`);
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 13,
+    "type": "build",
+  },
+  Object {
+    "start": 48,
+    "type": "walk",
+  },
+  Object {
+    "start": 52,
+    "type": "gather",
+  },
+]
 `);
 });
 

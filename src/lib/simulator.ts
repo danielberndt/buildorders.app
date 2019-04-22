@@ -170,14 +170,22 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
   // check if we need to walk there first
   const distanceFn = taskToDistance[nextTask.type];
   if (nextTask !== entity.atTaskLocation && distanceFn && entity.distanceFromTC !== null) {
-    const taskDistFromTc = distanceFn(nextTask as any, state.resPatches);
-    const walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
+    let walkDist: number;
+    let taskDistFromTc: number;
+    if ("atRes" in nextTask && entity.atRes === nextTask.atRes || "resId" in nextTask && entity.atRes === nextTask.resId) {
+      walkDist = 3
+      taskDistFromTc = entity.distanceFromTC
+    } else {
+      taskDistFromTc = distanceFn(nextTask as any, state.resPatches);
+      walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
+    }
     if (walkDist > 0) {
       return {
         type: "walk",
         endLocation: taskDistFromTc,
         remainingDistance: walkDist,
         targetTask: nextTask,
+        targetRes: "atRes" in nextTask ? nextTask.atRes : null,
         until: [...(nextTask.until ? [nextTask.until] : []), {type: "atTarget"}],
       };
     } else {
@@ -291,6 +299,7 @@ const addEntity = (opts: {
     remainingTasks: tasks,
     distanceFromTC,
     atTaskLocation: null,
+    atRes: null
   };
   let firstStep = getNextStep(entity, state);
   const actualStep = processConditions(firstStep, state);
@@ -411,8 +420,11 @@ export const simulateGame = (
           if ("luringBoarId" in desc) {
             state.resPatches[desc.luringBoarId].distance = 0;
             state.events.add(`lure_${desc.luringBoarId}`);
+            step.entity.atRes = null;
+            step.entity.atTaskLocation = null;
           } else {
             step.entity.atTaskLocation = desc.targetTask;
+            step.entity.atRes = desc.targetRes
           }
           step.entity.distanceFromTC = desc.endLocation;
         }

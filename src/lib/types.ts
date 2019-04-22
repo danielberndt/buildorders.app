@@ -64,7 +64,7 @@ type RawStepDesc =
   | {type: "build"; building: Buildings; isDepositAtRes: string | null; id: string}
   | {type: "walk"; endLocation: number; remainingDistance: number} & (
       | {luringBoarId: string}
-      | {targetTask: Task})
+      | {targetTask: Task, targetRes: string | null})
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
   | {type: "research"; technology: Technologies; remainingTime: number};
@@ -88,6 +88,7 @@ export type Entity = {
   remainingTasks: Task[];
   distanceFromTC: number | null;
   atTaskLocation: Task | null;
+  atRes: string | null;
 };
 
 export type Instructions = {

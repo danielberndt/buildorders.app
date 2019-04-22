@@ -83,7 +83,7 @@ const Entity = ({entity, pixelsPerSecond, totalDuration}) => {
 
 const resTypes = ["food", "wood", "gold", "stone"];
 
-const totalDuration = 600;
+const totalDuration = 700;
 
 const {resHistory, entities} = simulateGame(
   scoutInstructions,
