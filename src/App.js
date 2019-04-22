@@ -5,6 +5,11 @@ import {getDefaultModifiers} from "./simulator/defaultModifiers";
 import {simulateGame} from "./simulator";
 import scoutInstructions from "./instructions/scouts";
 import VisHeader from "./components/VisHeader";
+import {Col, Row} from "./style/layout";
+import {formatTime} from "./lib/format";
+import {Text} from "./style/text";
+import css from "@emotion/css";
+import {colors} from "./style/tokens";
 
 function getNodePosition(node) {
   if (!node) return null;
@@ -33,10 +38,12 @@ export function useRelativePosition(nodeRef) {
 const Timeline = ({totalSeconds, pixelsPerSecond}) => {
   const labels = createArrayWith(Math.ceil(totalSeconds / 30), i => i * 30);
   return (
-    <div css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2em"}}>
+    <div css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2.5rem"}}>
       {labels.map(label => (
         <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>
-          {label}
+          <Text size="xxs" lineHeight="none" css={{marginTop: "-0.6em"}}>
+            {formatTime(label)}
+          </Text>
         </div>
       ))}
     </div>
@@ -83,6 +90,31 @@ const Entity = ({entity, pixelsPerSecond, totalDuration}) => {
 };
 
 const totalDuration = 700;
+const bufferFromStart = 100;
+
+const timeIndicatorStyle = css({
+  position: "sticky",
+  borderBottom: `1px solid ${colors.gray_600}`,
+  top: bufferFromStart,
+});
+
+const timeIndicatorArrowStyle = css({
+  position: "absolute",
+  right: "100%",
+  marginRight: "0.25rem",
+  top: "-0.25rem",
+  width: 0,
+  height: 0,
+  borderTop: "0.25rem solid transparent",
+  borderBottom: "0.25rem solid transparent",
+  borderLeft: `0.25rem solid ${colors.gray_500}`,
+});
+
+const TimeIndicator = () => (
+  <div css={timeIndicatorStyle}>
+    <div css={timeIndicatorArrowStyle} />
+  </div>
+);
 
 const {resHistory, entities} = simulateGame(
   scoutInstructions,
@@ -95,7 +127,6 @@ const App = () => {
   const scrollPos = useRelativePosition(containerRef);
 
   const pixelsPerSecond = 2;
-  const bufferFromStart = 100;
 
   const currentTime =
     scrollPos === null
@@ -108,20 +139,16 @@ const App = () => {
   const currentRes = resHistory[currentTime];
 
   return (
-    <div>
-      <h1>Build Orders</h1>
-      <div css={{position: "relative", border: "1px solid blue"}}>
+    <Col>
+      <Text as="h1" size="xxl" weight="bold">
+        Build Orders
+      </Text>
+      <Col css={{position: "relative"}} bg="gray_700">
         <VisHeader time={currentTime} res={currentRes} />
         <div css={{height: bufferFromStart}} />
-        <div css={{position: "relative", border: "1px solid blue"}} ref={containerRef}>
-          <div
-            css={{
-              position: "sticky",
-              top: bufferFromStart,
-              borderBottom: "1px dotted red",
-            }}
-          />
-          <div css={{display: "flex"}}>
+        <Col css={{position: "relative"}} ref={containerRef} px={1}>
+          <TimeIndicator />
+          <Row>
             <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
             {React.useMemo(
               () =>
@@ -137,11 +164,11 @@ const App = () => {
                   )),
               [entities, totalDuration, pixelsPerSecond]
             )}
-          </div>
-        </div>
+          </Row>
+        </Col>
         <div css={{height: "100vh"}} />
-      </div>
-    </div>
+      </Col>
+    </Col>
   );
 };
 

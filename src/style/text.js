@@ -6,7 +6,9 @@ const classes = {
   color: createClasses("color", tokens.colors),
 
   fontSize: createClasses("fontSize", tokens.fontSizes),
-  lineHeight: createClasses("lineHeight", tokens.lineHeight),
+  lineHeight: createClasses("lineHeight", tokens.lineHeight, (step, type) => ({
+    [type]: step,
+  })),
   textAlign: createClasses("textAlign", {center: "center", left: "left", right: "right"}),
   fontWeight: createClasses("fontWeight", {regular: 400, bold: 700}, (step, type) => ({
     [type]: step,

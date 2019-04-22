@@ -8,7 +8,7 @@ export const createClasses = (
   if (Array.isArray(steps)) {
     const classes = [];
     steps.forEach(step => {
-      classes.push(css(stepToRule(step)));
+      classes.push(css(stepToRule(step, type)));
     });
     return classes;
   } else {
