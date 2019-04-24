@@ -22,9 +22,16 @@ const getDefaultOneAge = () => ({
       m[key] = {
         costMultiplier: {food: 1, wood: 1, gold: 1, stone: 1},
         buildingSpeedMultiplier: 1,
+        extraPopSpace: 0,
       };
       return m;
-    }, {}) as {[key in Buildings]: {costMultiplier: Res; buildingSpeedMultiplier: number}}),
+    }, {}) as {
+      [key in Buildings]: {
+        costMultiplier: Res;
+        buildingSpeedMultiplier: number;
+        extraPopSpace: number;
+      }
+    }),
     ...(Object.keys(technologies).reduce((m: any, key) => {
       m[key] = {
         costMultiplier: {food: 1, wood: 1, gold: 1, stone: 1},

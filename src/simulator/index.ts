@@ -288,7 +288,7 @@ const isStepCompleted = (step: Step, state: State) =>
 const addEntity = (opts: {
   id: string;
   type: Buildings | Units;
-  tasks: Task[];
+  tasks?: Task[];
   distanceFromTC: number | null;
   state: State;
 }) => {
@@ -298,11 +298,24 @@ const addEntity = (opts: {
     type,
     createdAt: state.time,
     steps: [],
-    remainingTasks: tasks,
+    remainingTasks: tasks || [],
     distanceFromTC,
     atTaskLocation: null,
     atRes: null,
   };
+  const info = allEntities[type];
+  const mod = state.modifiers.entities[type];
+  if ("popSpace" in info) {
+    // is building
+    state.maxPopSpace += Math.min(
+      200,
+      info.popSpace + ("extraPopSpace" in mod ? mod.extraPopSpace : 0)
+    );
+  }
+  if ("trainingTime" in info) {
+    // is unit
+    state.popSpace += 1;
+  }
   let firstStep = getNextStep(entity, state);
   const actualStep = processConditions(firstStep, state);
   entity.steps.push(actualStep);
@@ -318,6 +331,8 @@ type State = {
   currRes: Res;
   constructions: Constructions;
   entities: {[id: string]: Entity};
+  popSpace: number;
+  maxPopSpace: number;
 };
 
 export const simulateGame = (
@@ -325,7 +340,7 @@ export const simulateGame = (
   duration: number,
   modifiers: Modifiers
 ) => {
-  const resHistory: Res[] = [];
+  const resAndPopHistory: (Res & {maxPopSpace: number; popSpace: number})[] = [];
 
   const state: State = {
     currentSteps: [],
@@ -336,6 +351,8 @@ export const simulateGame = (
     events: new Set(),
     time: 0,
     entities: {},
+    popSpace: 0,
+    maxPopSpace: 0,
   };
 
   const decayableRes: {
@@ -526,8 +543,12 @@ export const simulateGame = (
         step.entity.steps.push(nextStep);
       }
     }
-    resHistory.push(cloneRes(state.currRes));
+    resAndPopHistory.push({
+      ...cloneRes(state.currRes),
+      maxPopSpace: state.maxPopSpace,
+      popSpace: state.popSpace,
+    });
   }
 
-  return {resHistory, entities: state.entities};
+  return {resAndPopHistory, entities: state.entities};
 };

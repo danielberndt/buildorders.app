@@ -20,6 +20,7 @@ const scoutInstructions: Instructions = {
     v1: {type: "villager"},
     v2: {type: "villager"},
     v3: {type: "villager"},
+    scout: {type: "scoutCavalry"},
   },
 
   tasks: {

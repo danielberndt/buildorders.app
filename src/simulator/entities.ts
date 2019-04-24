@@ -7,66 +7,77 @@ const rawBuildings = {
     icon: require("../images/buildings/dark-age/house.png"),
     cost: {food: 0, wood: 25, gold: 0, stone: 0},
     constructionTime: 25,
+    popSpace: 5,
     startAge: "darkAge",
   },
   lumberCamp: {
     icon: require("../images/buildings/dark-age/lumber-camp.png"),
     cost: {food: 0, wood: 100, gold: 0, stone: 0},
     constructionTime: 35,
+    popSpace: 0,
     startAge: "darkAge",
   },
   miningCamp: {
     icon: require("../images/buildings/dark-age/mining-camp.png"),
     cost: {food: 0, wood: 100, gold: 0, stone: 0},
     constructionTime: 35,
+    popSpace: 0,
     startAge: "darkAge",
   },
   townCenter: {
     icon: require("../images/buildings/castle-age/town-center.png"),
     cost: {food: 0, wood: 275, gold: 0, stone: 100},
     constructionTime: 999,
+    popSpace: 5,
     startAge: "darkAge",
   },
   farm: {
     icon: require("../images/buildings/dark-age/farm.png"),
     cost: {food: 0, wood: 60, gold: 0, stone: 0},
     constructionTime: 15,
+    popSpace: 0,
     startAge: "darkAge",
   },
   mill: {
     icon: require("../images/buildings/dark-age/mill.png"),
     cost: {food: 0, wood: 100, gold: 0, stone: 0},
     constructionTime: 35,
+    popSpace: 0,
     startAge: "darkAge",
   },
   dock: {
     icon: require("../images/buildings/dark-age/dock.png"),
     cost: {food: 0, wood: 150, gold: 0, stone: 0},
     constructionTime: 35,
+    popSpace: 0,
     startAge: "darkAge",
   },
   barracks: {
     icon: require("../images/buildings/dark-age/barracks.png"),
     cost: {food: 0, wood: 175, gold: 0, stone: 0},
     constructionTime: 50,
+    popSpace: 0,
     startAge: "darkAge",
   },
   outpost: {
     icon: require("../images/buildings/dark-age/outpost.png"),
     cost: {food: 0, wood: 25, gold: 0, stone: 5},
     constructionTime: 15,
+    popSpace: 0,
     startAge: "darkAge",
   },
   palisade: {
     icon: require("../images/buildings/dark-age/palisade.png"),
     cost: {food: 0, wood: 2, gold: 0, stone: 0},
     constructionTime: 6,
+    popSpace: 0,
     startAge: "darkAge",
   },
   palisadeGate: {
     icon: require("../images/buildings/dark-age/palisade-gate.png"),
     cost: {food: 0, wood: 20, gold: 0, stone: 0},
     constructionTime: 30,
+    popSpace: 0,
     startAge: "darkAge",
   },
 };
@@ -76,6 +87,7 @@ export const buildings = rawBuildings as {
     icon: string;
     cost: Res;
     constructionTime: number;
+    popSpace: number;
     startAge: Ages;
   }
 };
@@ -111,6 +123,13 @@ const rawUnits = {
     trainingTime: 21,
     trainedIn: "barracks",
     startAge: "darkAge",
+  },
+  scoutCavalry: {
+    icon: require("../images/units/feudal-age/scout-cavalry.png"),
+    cost: {food: 80, wood: 0, gold: 0, stone: 0},
+    trainingTime: 30,
+    trainedIn: "stable",
+    startAge: "feudalAge",
   },
 };
 

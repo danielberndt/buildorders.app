@@ -78,7 +78,7 @@ const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
   const containerRef = React.useRef();
   const scrollPos = useRelativePosition(containerRef);
 
-  const {resHistory, entities} = React.useMemo(
+  const {resAndPopHistory, entities} = React.useMemo(
     () => simulateGame(instructions, totalDuration, modifiers),
     [instructions, totalDuration, modifiers]
   );
@@ -93,7 +93,7 @@ const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
           Math.max(0, Math.round((-scrollPos + bufferFromStart) / pixelsPerSecond))
         );
 
-  const currentRes = resHistory[currentTime];
+  const currentRes = resAndPopHistory[currentTime];
 
   return (
     <Col css={{position: "relative"}} bg="gray_700">

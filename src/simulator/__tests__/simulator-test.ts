@@ -12,11 +12,13 @@ test("null case", () => {
     entities: {},
     tasks: {},
   };
-  const {resHistory} = simulateGame(instructions, 10, defaultModifiers);
-  expect(resHistory[9]).toMatchInlineSnapshot(`
+  const {resAndPopHistory} = simulateGame(instructions, 10, defaultModifiers);
+  expect(resAndPopHistory[9]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 0,
   "stone": 0,
   "wood": 0,
 }
@@ -36,11 +38,13 @@ test("one sheep", () => {
       v1: [{type: "gather", resId: "sheep"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
-  expect(resHistory[9]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
+  expect(resAndPopHistory[9]).toMatchInlineSnapshot(`
 Object {
   "food": 1.9800000000000002,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 1,
   "stone": 0,
   "wood": 0,
 }
@@ -72,11 +76,13 @@ test("one sheep till the end", () => {
       v1: [{type: "gather", resId: "sheep"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
-  expect(resHistory[199]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 57.000000000000036,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 1,
   "stone": 0,
   "wood": 0,
 }
@@ -110,11 +116,13 @@ test("building a house", () => {
       v1: [{type: "build", building: "house", distance: 4, id: "h1"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
-  expect(resHistory[199]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
+  "maxPopSpace": 5,
+  "popSpace": 1,
   "stone": 0,
   "wood": 75,
 }
@@ -150,11 +158,13 @@ test("two building a house", () => {
       v2: [{type: "build", building: "house", distance: 4, id: "h1"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 25, defaultModifiers);
-  expect(resHistory[24]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 25, defaultModifiers);
+  expect(resAndPopHistory[24]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
+  "maxPopSpace": 5,
+  "popSpace": 2,
   "stone": 0,
   "wood": 75,
 }
@@ -204,11 +214,13 @@ test("luring a boar", () => {
       v1: [{type: "lure", boarId: "boar1"}, {type: "gather", resId: "boar1"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 500, defaultModifiers);
-  expect(resHistory[499]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 500, defaultModifiers);
+  expect(resAndPopHistory[499]).toMatchInlineSnapshot(`
 Object {
   "food": 172.19999999999885,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 1,
   "stone": 0,
   "wood": 0,
 }
@@ -249,11 +261,13 @@ test("cut stragglers till can build house", () => {
       ],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
-  expect(resHistory[199]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
+  "maxPopSpace": 5,
+  "popSpace": 1,
   "stone": 0,
   "wood": 0.2875816993463829,
 }
@@ -311,11 +325,13 @@ test("train vill until enough food", () => {
       ],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 300, defaultModifiers);
-  expect(resHistory[299]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 300, defaultModifiers);
+  expect(resAndPopHistory[299]).toMatchInlineSnapshot(`
 Object {
   "food": 8.409999999999826,
   "gold": 0,
+  "maxPopSpace": 10,
+  "popSpace": 2,
   "stone": 0,
   "wood": 0.2875816993463829,
 }
@@ -412,11 +428,13 @@ test("do loom once enough gold", () => {
       ],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
-  expect(resHistory[199]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 8.88888888888896,
+  "maxPopSpace": 5,
+  "popSpace": 1,
   "stone": 0,
   "wood": 0,
 }
@@ -468,11 +486,13 @@ test("build lumbercamp at resources means less walking", () => {
       v1: [{type: "build", building: "lumberCamp", atRes: "wood"}, {type: "gather", resId: "wood"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
-  expect(resHistory[199]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 1,
   "stone": 0,
   "wood": 68.79470198675513,
 }
@@ -516,11 +536,13 @@ test("immediately does the right thing if several task's untils are met", () => 
       ],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
-  expect(resHistory[9]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
+  expect(resAndPopHistory[9]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 1,
   "stone": 0,
   "wood": 75,
 }
@@ -550,11 +572,13 @@ test("build a farm and gather from it", () => {
       v1: [{type: "build", building: "farm", id: "f1", distance: 0}, {type: "gather", resId: "f1"}],
     },
   };
-  const {resHistory, entities} = simulateGame(instructions, 100, defaultModifiers);
-  expect(resHistory[99]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers);
+  expect(resAndPopHistory[99]).toMatchInlineSnapshot(`
 Object {
   "food": 28.058823529411733,
   "gold": 0,
+  "maxPopSpace": 0,
+  "popSpace": 1,
   "stone": 0,
   "wood": 40,
 }
