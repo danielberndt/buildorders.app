@@ -43,6 +43,7 @@ const WalkStep = ({height, desc: {luringBoarId}}) => (
 );
 
 const WaitStep = ({height}) => <Col css={{height, position: "relative"}} bg="gray_600" />;
+const KillStep = ({height}) => <Col css={{height, position: "relative"}} bg="gray_500" />;
 
 const resTypeInfo = {
   berries: {icon: ressources.berries.icon, color: "red_300"},
@@ -73,6 +74,7 @@ const stepComps = {
   walk: WalkStep,
   wait: WaitStep,
   gather: GatherStep,
+  kill: KillStep,
 };
 
 const Step = ({step, duration, pixelsPerSecond}) => {

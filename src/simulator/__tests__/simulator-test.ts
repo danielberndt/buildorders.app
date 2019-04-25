@@ -214,8 +214,8 @@ test("luring a boar", () => {
       v1: [{type: "lure", boarId: "boar1"}, {type: "gather", resId: "boar1"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 500, defaultModifiers);
-  expect(resAndPopHistory[499]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 600, defaultModifiers);
+  expect(resAndPopHistory[599]).toMatchInlineSnapshot(`
 Object {
   "food": 172.19999999999885,
   "gold": 0,
@@ -237,10 +237,14 @@ Array [
   },
   Object {
     "start": 48,
+    "type": "kill",
+  },
+  Object {
+    "start": 94,
     "type": "gather",
   },
   Object {
-    "start": 469,
+    "start": 515,
     "type": "wait",
   },
 ]

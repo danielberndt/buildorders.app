@@ -196,6 +196,20 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
       entity.atTaskLocation = nextTask;
     }
   }
+  if (nextTask.type === "gather") {
+    const res = state.resPatches[nextTask.resId];
+    if (res.hpRemaining > 0) {
+      return {
+        type: "kill",
+        boarId: nextTask.resId,
+        targetTask: nextTask,
+        until: [
+          ...(nextTask.until ? [nextTask.until] : []),
+          {type: "event", name: `killed-boar-${nextTask.resId}`},
+        ],
+      };
+    }
+  }
   return taskToStepDesc[nextTask.type]({
     entity,
     task: nextTask as any,
@@ -242,12 +256,14 @@ const processConditions = (step: Step, state: State): Step => {
 const enhanceRessources = (resPatches: ResPatches, modifiers: Modifiers) => {
   const enhanced: EnhancedResPatches = {};
   Object.entries(resPatches).forEach(([id, res]) => {
-    const {activity, amount} = resPerUnit[res.type];
+    const {activity, amount, hp} = resPerUnit[res.type];
+    const count = "count" in res ? res.count : 1;
     enhanced[id] = {
       ...res,
       hasDeposit: false,
       resType: villGatheringData[activity].ressource,
-      remaining: amount * ("count" in res ? res.count : 1) * modifiers.ressourceDurationMultiplier,
+      remaining: amount * count * modifiers.ressourceDurationMultiplier,
+      hpRemaining: (hp || 0) * count,
     };
   });
   return enhanced;
@@ -437,7 +453,9 @@ export const simulateGame = (
         desc.remainingDistance = Math.max(0, nextDist);
         if (desc.remainingDistance === 0) {
           if ("luringBoarId" in desc) {
-            state.resPatches[desc.luringBoarId].distance = 0;
+            const res = state.resPatches[desc.luringBoarId];
+            res.distance = 0;
+            res.hpRemaining -= 6;
             state.events.add(`lure_${desc.luringBoarId}`);
             step.entity.atRes = null;
             step.entity.atTaskLocation = null;
@@ -463,6 +481,13 @@ export const simulateGame = (
           state.currRes[res.resType] += gatherAmount;
         }
       } else if (desc.type === "wait") {
+      } else if (desc.type === "kill") {
+        const res = state.resPatches[desc.boarId];
+        res.hpRemaining = Math.max(
+          0,
+          res.hpRemaining - 1.5 * modifiers.villagers.boarKillingSpeedMultiplier
+        );
+        if (res.hpRemaining === 0) state.events.add(`killed-boar-${desc.boarId}`);
       } else if (desc.type === "research") {
         const {remainingTime, technology} = desc;
         // TODO: Add tech speed multipliers
@@ -513,6 +538,7 @@ export const simulateGame = (
             resType: "food",
             remaining: resPerUnit.farm.amount,
             hasDeposit: false,
+            hpRemaining: 0,
           };
         } else {
           const entity = addEntity({

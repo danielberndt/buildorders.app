@@ -26,7 +26,7 @@ const Number = ({val, color = "gray_100"}) => (
 const stickyStyle = css({
   position: "sticky",
   top: 0,
-  zIndex: 1,
+  zIndex: 2,
 });
 
 const iconStyle = css({

@@ -16,6 +16,7 @@ const getDefaultOneAge = () => ({
   }, {}) as {[key in GatherTypes]: {gatheringMultiplier: number; extraCarryingCapacity: number}},
   villagers: {
     walkingSpeedMultiplier: 1,
+    boarKillingSpeedMultiplier: 1,
   },
   entities: {
     ...(Object.keys(buildings).reduce((m: any, key) => {

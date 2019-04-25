@@ -14,12 +14,12 @@ export const villGatheringData: {
 };
 
 export const resPerUnit: {
-  [key in PropType<ResPatch, "type">]: {amount: number; activity: GatherTypes}
+  [key in PropType<ResPatch, "type">]: {amount: number; activity: GatherTypes; hp?: number}
 } = {
   berries: {amount: 125, activity: "foraging"},
   sheep: {amount: 100, activity: "eatingSheep"},
   deer: {amount: 140, activity: "hunting"},
-  boar: {amount: 340, activity: "hunting"},
+  boar: {amount: 340, activity: "hunting", hp: 75},
   wood: {amount: 10000, activity: "cuttingWood"},
   gold: {amount: 800, activity: "miningGold"},
   stone: {amount: 350, activity: "miningStone"},

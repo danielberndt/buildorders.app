@@ -34,6 +34,7 @@ export type EnhancedResPatch = {
   resType: keyof Res;
   remaining: number;
   hasDeposit: boolean;
+  hpRemaining: number;
 };
 export type ResPatch = ResPatchWithCount | ResPatchWithoutCount;
 
@@ -67,7 +68,8 @@ type RawStepDesc =
       | {targetTask: Task; targetRes: string | null})
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
-  | {type: "research"; technology: Technologies; remainingTime: number};
+  | {type: "research"; technology: Technologies; remainingTime: number}
+  | {type: "kill"; targetTask: Task; boarId: string};
 
 export type StepDesc = RawStepDesc & {
   until: Until[];
