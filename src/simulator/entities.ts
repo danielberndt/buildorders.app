@@ -80,6 +80,14 @@ const rawBuildings = {
     popSpace: 0,
     startAge: "darkAge",
   },
+
+  stable: {
+    icon: require("../images/buildings/feudal-age/stable.png"),
+    cost: {food: 0, wood: 175, gold: 0, stone: 0},
+    constructionTime: 50,
+    popSpace: 0,
+    startAge: "feudalAge",
+  },
 };
 
 export const buildings = rawBuildings as {

@@ -50,9 +50,9 @@ const resTypeInfo = {
   sheep: {icon: ressources.sheep.icon, color: "red_200"},
   deer: {icon: ressources.deer.icon, color: "red_500"},
   // TODO: find straggler icon
-  stragglers: {icon: ressources.wood.icon, color: "red_300"},
+  stragglers: {icon: ressources.wood.icon, color: "green_200"},
   boar: {icon: ressources.boar.icon, color: "purple_300"},
-  wood: {icon: ressources.wood.icon, color: "green_300"},
+  wood: {icon: ressources.wood.icon, color: "green_400"},
   gold: {icon: ressources.gold.icon, color: "red_300"},
   stone: {icon: ressources.stone.icon, color: "red_300"},
   farm: {icon: ressources.farm.icon, color: "orange_300"},

@@ -31,6 +31,7 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
+      {type: "gather", resId: "strgl"},
     ],
     v2: [
       {type: "build", building: "house", distance: 4, id: "h1"},
@@ -39,6 +40,7 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
+      {type: "gather", resId: "strgl"},
     ],
     v3: [
       {type: "build", building: "house", distance: 4, id: "h2"},
@@ -47,32 +49,52 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
+      {type: "gather", resId: "strgl"},
     ],
     tc: [
       ...createArrayWith<Task>(22 - 4, i => ({type: "train", unit: "villager", id: `v${i + 4}`})),
       {type: "research", technology: "loom"},
       {type: "research", technology: "feudalAge"},
+      ...createArrayWith<Task>(10, i => ({type: "train", unit: "villager", id: `v${i + 22}`})),
     ],
     v4: [
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
       {type: "gather", resId: "boar1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
-      {type: "gather", resId: "sheep"},
+      {
+        type: "gather",
+        resId: "sheep",
+        until: {type: "researchAt", percentDone: 90, technology: "feudalAge"},
+      },
+      {type: "build", building: "stable", distance: 10, id: "stable"},
+      {type: "gather", resId: "strgl"},
     ],
     v5: [
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
       {type: "gather", resId: "boar1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
-      {type: "gather", resId: "sheep"},
+      {
+        type: "gather",
+        resId: "sheep",
+        until: {type: "researchAt", percentDone: 50, technology: "feudalAge"},
+      },
+      {type: "build", building: "barracks", distance: 10},
+      {type: "build", building: "stable", distance: 0, id: "stable"},
+      {type: "gather", resId: "strgl"},
     ],
     v6: [
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
       {type: "gather", resId: "boar1"},
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
-      {type: "gather", resId: "sheep"},
+      {
+        type: "gather",
+        resId: "sheep",
+        until: {type: "researchAt", percentDone: 0, technology: "feudalAge"},
+      },
+      {type: "gather", resId: "woodline2"},
     ],
     v7: [
       {type: "build", building: "lumberCamp", atRes: "woodline1"},
@@ -135,7 +157,16 @@ const scoutInstructions: Instructions = {
       {type: "build", building: "lumberCamp", atRes: "woodline2"},
       {type: "gather", resId: "woodline2"},
     ],
+    v22: [{type: "gather", resId: "strgl"}],
+    v23: [{type: "gather", resId: "strgl"}],
+    v24: [{type: "gather", resId: "strgl"}],
+    v25: [{type: "gather", resId: "strgl"}],
 
+    stable: [
+      {type: "train", unit: "scoutCavalry"},
+      {type: "train", unit: "scoutCavalry"},
+      {type: "train", unit: "scoutCavalry"},
+    ],
     // once boar2 is done, 3 on woodline2
   },
 };
