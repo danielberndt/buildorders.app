@@ -103,10 +103,31 @@ const scoutInstructions: Instructions = {
     v16: [
       {type: "build", building: "house", distance: 8},
       {type: "gather", resId: "boar2"},
-      {type: "gather", resId: "sheep"},
+      {
+        type: "gather",
+        resId: "sheep",
+        until: {type: "researchAt", percentDone: 0, technology: "feudalAge"},
+      },
+      {type: "gather", resId: "woodline2"},
     ],
-    v17: [{type: "gather", resId: "boar2"}, {type: "gather", resId: "sheep"}],
-    v18: [{type: "gather", resId: "boar2"}, {type: "gather", resId: "sheep"}],
+    v17: [
+      {type: "gather", resId: "boar2"},
+      {
+        type: "gather",
+        resId: "sheep",
+        until: {type: "researchAt", percentDone: 0, technology: "feudalAge"},
+      },
+      {type: "gather", resId: "woodline2"},
+    ],
+    v18: [
+      {type: "gather", resId: "boar2"},
+      {
+        type: "gather",
+        resId: "sheep",
+        until: {type: "researchAt", percentDone: 0, technology: "feudalAge"},
+      },
+      {type: "gather", resId: "woodline2"},
+    ],
 
     v19: [{type: "gather", resId: "woodline1"}],
     v20: [{type: "gather", resId: "woodline1"}],

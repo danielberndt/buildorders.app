@@ -17,6 +17,7 @@ import {
   Constructions,
   Buildings,
   Units,
+  Technologies,
 } from "./types";
 import {Modifiers} from "./defaultModifiers";
 import {units, technologies, buildings, allEntities} from "./entities";
@@ -158,8 +159,9 @@ const taskToStepDesc: TaskToStepDesc = {
     return {
       type,
       technology,
+      startTime: info.researchTime,
       remainingTime: info.researchTime,
-      until: [{type: "event", name: `researchFinished-${technology}`}],
+      until: [{type: "researchAt", percentDone: 100, technology}],
     };
   },
 };
@@ -238,16 +240,22 @@ const getNextStep = (entity: Entity, state: State): Step => {
 
 const processConditions = (step: Step, state: State): Step => {
   let currentStep = step;
+  let i = 0;
   while (isStepCompleted(currentStep, state)) {
-    if ("targetTask" in step.desc) {
-      const nextStepDesc = taskToStepDesc[step.desc.targetTask.type]({
-        entity: step.entity,
-        task: step.desc.targetTask as any,
+    i += 1;
+    if ("targetTask" in currentStep.desc) {
+      const nextStepDesc = taskToStepDesc[currentStep.desc.targetTask.type]({
+        entity: currentStep.entity,
+        task: currentStep.desc.targetTask as any,
         resPatches: state.resPatches,
       });
-      currentStep = {desc: nextStepDesc, entity: step.entity, start: state.time};
+      currentStep = {desc: nextStepDesc, entity: currentStep.entity, start: state.time};
     } else {
-      currentStep = getNextStep(step.entity, state);
+      currentStep = getNextStep(currentStep.entity, state);
+    }
+    if (i > 10) {
+      console.log({currentStep});
+      throw new Error("Cought in a loop!");
     }
   }
   return currentStep;
@@ -294,6 +302,10 @@ const conditionFulfilled: ConditionFulfilledObj = {
     const {cost} = allEntities[entity];
     const mod = state.modifiers.entities[entity];
     return canAfford(state.currRes, multiply(cost, mod.costMultiplier));
+  },
+  researchAt: ({cond: {technology, percentDone}, state}) => {
+    const p = state.researchProgress[technology];
+    return p !== undefined && p >= percentDone;
   },
 };
 
@@ -349,6 +361,7 @@ type State = {
   entities: {[id: string]: Entity};
   popSpace: number;
   maxPopSpace: number;
+  researchProgress: {[T in Technologies]?: number};
 };
 
 export const simulateGame = (
@@ -369,6 +382,7 @@ export const simulateGame = (
     entities: {},
     popSpace: 0,
     maxPopSpace: 0,
+    researchProgress: {},
   };
 
   const decayableRes: {
@@ -424,6 +438,7 @@ export const simulateGame = (
   */
 
   for (; state.time < duration; state.time += 1) {
+    state.researchProgress = {};
     for (const res of Object.values(decayableRes)) {
       if (res.hasBeenTouched) {
         res.patch.remaining = Math.max(0, res.patch.remaining - res.decayRate);
@@ -489,15 +504,13 @@ export const simulateGame = (
         );
         if (res.hpRemaining === 0) state.events.add(`killed-boar-${desc.boarId}`);
       } else if (desc.type === "research") {
-        const {remainingTime, technology} = desc;
+        const {remainingTime, technology, startTime} = desc;
         // TODO: Add tech speed multipliers
         desc.remainingTime = Math.max(
           remainingTime - 1 * modifiers.entities[technology].researchSpeedMultiplier,
           0
         );
-        if (desc.remainingTime === 0) {
-          state.events.add(`researchFinished-${technology}`);
-        }
+        state.researchProgress[technology] = (100 * (startTime - desc.remainingTime)) / startTime;
       } else if (desc.type === "train") {
         const {remainingTime, unit, id} = desc;
         // TODO: Add unit train speed multipliers

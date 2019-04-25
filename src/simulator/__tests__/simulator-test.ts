@@ -425,7 +425,13 @@ test("do loom once enough gold", () => {
       v1: {type: "villager"},
     },
     tasks: {
-      v1: [{type: "gather", resId: "gold", until: {type: "event", name: "researchFinished-loom"}}],
+      v1: [
+        {
+          type: "gather",
+          resId: "gold",
+          until: {type: "researchAt", technology: "loom", percentDone: 100},
+        },
+      ],
       tc: [
         {type: "wait", until: {type: "buildRes", entity: "loom"}},
         {type: "research", technology: "loom"},
@@ -600,6 +606,156 @@ Array [
   Object {
     "start": 18,
     "type": "gather",
+  },
+]
+`);
+});
+
+test("condition fulfilled while walking to target", () => {
+  const instructions: Instructions = {
+    startingRes: {...nullRes, food: 45},
+    resPatches: {
+      sheep: {type: "sheep", count: 2, distance: 0},
+      wood: {type: "wood", distance: 100},
+    },
+    entities: {
+      v1: {type: "villager"},
+      v2: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "sheep"}],
+      v2: [{type: "gather", resId: "wood", until: {type: "buildRes", entity: "villager"}}],
+    },
+  };
+  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers);
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 3,
+    "type": "gather",
+  },
+]
+`);
+  expect(entities.v2.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 19,
+    "type": "wait",
+  },
+]
+`);
+});
+
+test("react to researchAt event", () => {
+  const instructions: Instructions = {
+    startingRes: {...nullRes, food: 490},
+    resPatches: {
+      sheep: {type: "sheep", count: 10, distance: 0},
+    },
+    entities: {
+      v1: {type: "villager"},
+      v2: {type: "villager"},
+      v3: {type: "villager"},
+      tc: {type: "townCenter"},
+    },
+    tasks: {
+      tc: [
+        {type: "wait", until: {type: "buildRes", entity: "feudalAge"}},
+        {type: "research", technology: "feudalAge"},
+      ],
+      v1: [
+        {
+          type: "gather",
+          resId: "sheep",
+          until: {type: "researchAt", percentDone: 0, technology: "feudalAge"},
+        },
+      ],
+      v2: [
+        {
+          type: "gather",
+          resId: "sheep",
+          until: {type: "researchAt", percentDone: 35, technology: "feudalAge"},
+        },
+      ],
+      v3: [
+        {
+          type: "gather",
+          resId: "sheep",
+          until: {type: "researchAt", percentDone: 100, technology: "feudalAge"},
+        },
+      ],
+    },
+  };
+  const {entities} = simulateGame(instructions, 200, defaultModifiers);
+  expect(entities.tc.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "wait",
+  },
+  Object {
+    "start": 14,
+    "type": "research",
+  },
+  Object {
+    "start": 144,
+    "type": "wait",
+  },
+]
+`);
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 3,
+    "type": "gather",
+  },
+  Object {
+    "start": 15,
+    "type": "wait",
+  },
+]
+`);
+  expect(entities.v2.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 3,
+    "type": "gather",
+  },
+  Object {
+    "start": 60,
+    "type": "wait",
+  },
+]
+`);
+  expect(entities.v3.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 3,
+    "type": "gather",
+  },
+  Object {
+    "start": 144,
+    "type": "wait",
   },
 ]
 `);

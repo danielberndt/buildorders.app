@@ -44,7 +44,8 @@ export type EnhancedResPatches = {[id: string]: EnhancedResPatch & ResPatch};
 export type Until =
   | {type: "buildRes"; entity: Buildings | Units | Technologies}
   | {type: "event"; name: string}
-  | {type: "atTarget"};
+  | {type: "atTarget"}
+  | {type: "researchAt"; technology: Technologies; percentDone: number};
 
 export type RawTasks =
   | {type: "gather"; resId: string}
@@ -68,7 +69,7 @@ type RawStepDesc =
       | {targetTask: Task; targetRes: string | null})
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
-  | {type: "research"; technology: Technologies; remainingTime: number}
+  | {type: "research"; technology: Technologies; startTime: number; remainingTime: number}
   | {type: "kill"; targetTask: Task; boarId: string};
 
 export type StepDesc = RawStepDesc & {
