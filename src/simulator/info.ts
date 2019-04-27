@@ -8,9 +8,9 @@ export const villGatheringData: {
   hunting: {rawGatheringPerS: 0.41, carryingCapacity: 35, ressource: "food"},
   fishing: {rawGatheringPerS: 0.43, carryingCapacity: 10, ressource: "food"},
   farming: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "food"},
-  cuttingWood: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "wood"},
-  miningGold: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "gold"},
-  miningStone: {rawGatheringPerS: 0.53, carryingCapacity: 10, ressource: "stone"},
+  cuttingWood: {rawGatheringPerS: 0.39, carryingCapacity: 10, ressource: "wood"},
+  miningGold: {rawGatheringPerS: 0.38, carryingCapacity: 10, ressource: "gold"},
+  miningStone: {rawGatheringPerS: 0.36, carryingCapacity: 10, ressource: "stone"},
 };
 
 export const resPerUnit: {

@@ -69,7 +69,13 @@ type RawStepDesc =
       | {targetTask: Task; targetRes: string | null})
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
-  | {type: "research"; technology: Technologies; startTime: number; remainingTime: number}
+  | {
+      type: "research";
+      technology: Technologies;
+      startTime: number;
+      remainingTime: number;
+      improves?: any;
+    }
   | {type: "kill"; targetTask: Task; boarId: string};
 
 export type StepDesc = RawStepDesc & {

@@ -11,9 +11,15 @@ const getDefaultOneAge = () => ({
   ressourceDurationMultiplier: 1,
 
   gathering: Object.keys(villGatheringData).reduce((m: any, key) => {
-    m[key] = {gatheringMultiplier: 1, extraCarryingCapacity: 0};
+    m[key] = {gatheringMultiplier: 1, extraCarryingCapacity: 0, extraCarryingMultiplier: 1};
     return m;
-  }, {}) as {[key in GatherTypes]: {gatheringMultiplier: number; extraCarryingCapacity: number}},
+  }, {}) as {
+    [key in GatherTypes]: {
+      gatheringMultiplier: number;
+      extraCarryingCapacity: number;
+      extraCarryingMultiplier: number;
+    }
+  },
   villagers: {
     walkingSpeedMultiplier: 1,
     boarKillingSpeedMultiplier: 1,

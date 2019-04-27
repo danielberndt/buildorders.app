@@ -141,31 +141,29 @@ const clumpImgStyle = css({
   display: "block",
 });
 
-const TechClump = ({clump, pixelsPerSecond}) => {
-  return (
-    <Row css={clumpStyle} style={{top: clump.start * pixelsPerSecond}}>
-      {clump.steps.map(step => (
-        <Col
-          key={step.desc.technology}
-          css={{overflow: "hidden"}}
-          bg="purple_200"
-          style={{
-            height: step.duration * pixelsPerSecond,
-            marginTop: (step.start - clump.start) * pixelsPerSecond,
-          }}
-        >
-          <img
-            src={getIcon(step.desc.technology, "")}
-            alt={step.desc.technology}
-            title={step.desc.technology}
-            css={clumpImgStyle}
-            style={{width: `${100 * clump.steps.length}%`}}
-          />
-        </Col>
-      ))}
-    </Row>
-  );
-};
+const TechClump = ({clump, pixelsPerSecond}) => (
+  <Row css={clumpStyle} style={{top: clump.start * pixelsPerSecond}}>
+    {clump.steps.map(step => (
+      <Col
+        key={step.desc.technology}
+        css={{overflow: "hidden"}}
+        bg="purple_200"
+        style={{
+          height: step.duration * pixelsPerSecond,
+          marginTop: (step.start - clump.start) * pixelsPerSecond,
+        }}
+      >
+        <img
+          src={getIcon(step.desc.technology, "")}
+          alt={step.desc.technology}
+          title={step.desc.technology}
+          css={clumpImgStyle}
+          style={{width: `${100 * clump.steps.length}%`}}
+        />
+      </Col>
+    ))}
+  </Row>
+);
 
 const findClumps = techSteps => {
   const clumps = [];
@@ -185,13 +183,10 @@ const findClumps = techSteps => {
   return clumps;
 };
 
-export const TechCol = ({techSteps, pixelsPerSecond}) => {
-  const clumps = findClumps(techSteps);
-  return (
-    <Col fillParent bg="gray_600" css={{position: "relative"}}>
-      {clumps.map((c, i) => (
-        <TechClump key={i} clump={c} pixelsPerSecond={pixelsPerSecond} />
-      ))}
-    </Col>
-  );
-};
+export const TechCol = ({techSteps, pixelsPerSecond}) => (
+  <Col fillParent bg="gray_600" css={{position: "relative"}}>
+    {findClumps(techSteps).map((c, i) => (
+      <TechClump key={i} clump={c} pixelsPerSecond={pixelsPerSecond} />
+    ))}
+  </Col>
+);

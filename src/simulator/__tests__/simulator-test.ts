@@ -3,7 +3,7 @@ import {simulateGame} from "..";
 import {Res, Instructions} from "../types";
 
 const nullRes: Res = {wood: 0, food: 0, gold: 0, stone: 0};
-const defaultModifiers = getDefaultModifiers().darkAge;
+const defaultModifiers = () => getDefaultModifiers().darkAge;
 
 test("null case", () => {
   const instructions: Instructions = {
@@ -12,7 +12,7 @@ test("null case", () => {
     entities: {},
     tasks: {},
   };
-  const {resAndPopHistory} = simulateGame(instructions, 10, defaultModifiers);
+  const {resAndPopHistory} = simulateGame(instructions, 10, defaultModifiers());
   expect(resAndPopHistory[9]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
@@ -38,7 +38,7 @@ test("one sheep", () => {
       v1: [{type: "gather", resId: "sheep"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 10, defaultModifiers());
   expect(resAndPopHistory[9]).toMatchInlineSnapshot(`
 Object {
   "food": 1.9800000000000002,
@@ -76,7 +76,7 @@ test("one sheep till the end", () => {
       v1: [{type: "gather", resId: "sheep"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers());
   expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 57.000000000000036,
@@ -116,7 +116,7 @@ test("building a house", () => {
       v1: [{type: "build", building: "house", distance: 4, id: "h1"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers());
   expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
@@ -158,7 +158,7 @@ test("two building a house", () => {
       v2: [{type: "build", building: "house", distance: 4, id: "h1"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 25, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 25, defaultModifiers());
   expect(resAndPopHistory[24]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
@@ -214,7 +214,7 @@ test("luring a boar", () => {
       v1: [{type: "lure", boarId: "boar1"}, {type: "gather", resId: "boar1"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 600, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 600, defaultModifiers());
   expect(resAndPopHistory[599]).toMatchInlineSnapshot(`
 Object {
   "food": 172.19999999999885,
@@ -265,7 +265,7 @@ test("cut stragglers till can build house", () => {
       ],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers());
   expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
@@ -273,7 +273,7 @@ Object {
   "maxPopSpace": 5,
   "popSpace": 1,
   "stone": 0,
-  "wood": 0.2875816993463829,
+  "wood": 0.2517985611511371,
 }
 `);
   expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
@@ -287,15 +287,15 @@ Array [
     "type": "gather",
   },
   Object {
-    "start": 79,
+    "start": 96,
     "type": "walk",
   },
   Object {
-    "start": 87,
+    "start": 104,
     "type": "build",
   },
   Object {
-    "start": 112,
+    "start": 129,
     "type": "wait",
   },
 ]
@@ -329,7 +329,7 @@ test("train vill until enough food", () => {
       ],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 300, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 300, defaultModifiers());
   expect(resAndPopHistory[299]).toMatchInlineSnapshot(`
 Object {
   "food": 8.409999999999826,
@@ -337,7 +337,7 @@ Object {
   "maxPopSpace": 10,
   "popSpace": 2,
   "stone": 0,
-  "wood": 0.2875816993463829,
+  "wood": 0.5323741007194833,
 }
 `);
   expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
@@ -359,15 +359,15 @@ Array [
     "type": "gather",
   },
   Object {
-    "start": 222,
+    "start": 231,
     "type": "walk",
   },
   Object {
-    "start": 230,
+    "start": 239,
     "type": "build",
   },
   Object {
-    "start": 247,
+    "start": 256,
     "type": "wait",
   },
 ]
@@ -383,15 +383,15 @@ Array [
     "type": "gather",
   },
   Object {
-    "start": 222,
+    "start": 231,
     "type": "walk",
   },
   Object {
-    "start": 230,
+    "start": 239,
     "type": "build",
   },
   Object {
-    "start": 247,
+    "start": 256,
     "type": "wait",
   },
 ]
@@ -438,11 +438,11 @@ test("do loom once enough gold", () => {
       ],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
-  expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
+  const {resAndPopHistory, entities} = simulateGame(instructions, 300, defaultModifiers());
+  expect(resAndPopHistory[299]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
-  "gold": 8.88888888888896,
+  "gold": 6.99999999999984,
   "maxPopSpace": 5,
   "popSpace": 1,
   "stone": 0,
@@ -460,7 +460,7 @@ Array [
     "type": "gather",
   },
   Object {
-    "start": 176,
+    "start": 213,
     "type": "wait",
   },
 ]
@@ -472,11 +472,11 @@ Array [
     "type": "wait",
   },
   Object {
-    "start": 151,
+    "start": 188,
     "type": "research",
   },
   Object {
-    "start": 176,
+    "start": 213,
     "type": "wait",
   },
 ]
@@ -496,7 +496,7 @@ test("build lumbercamp at resources means less walking", () => {
       v1: [{type: "build", building: "lumberCamp", atRes: "wood"}, {type: "gather", resId: "wood"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 200, defaultModifiers());
   expect(resAndPopHistory[199]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
@@ -504,7 +504,7 @@ Object {
   "maxPopSpace": 0,
   "popSpace": 1,
   "stone": 0,
-  "wood": 68.79470198675513,
+  "wood": 52.236902050113706,
 }
 `);
   expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
@@ -546,7 +546,7 @@ test("immediately does the right thing if several task's untils are met", () => 
       ],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 10, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 10, defaultModifiers());
   expect(resAndPopHistory[9]).toMatchInlineSnapshot(`
 Object {
   "food": 0,
@@ -582,7 +582,7 @@ test("build a farm and gather from it", () => {
       v1: [{type: "build", building: "farm", id: "f1", distance: 0}, {type: "gather", resId: "f1"}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers());
   expect(resAndPopHistory[99]).toMatchInlineSnapshot(`
 Object {
   "food": 28.058823529411733,
@@ -627,7 +627,7 @@ test("condition fulfilled while walking to target", () => {
       v2: [{type: "gather", resId: "wood", until: {type: "buildRes", entity: "villager"}}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers);
+  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers());
   expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
 Array [
   Object {
@@ -694,7 +694,7 @@ test("react to researchAt event", () => {
       ],
     },
   };
-  const {entities} = simulateGame(instructions, 200, defaultModifiers);
+  const {entities} = simulateGame(instructions, 200, defaultModifiers());
   expect(entities.tc.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
 Array [
   Object {
@@ -759,4 +759,80 @@ Array [
   },
 ]
 `);
+});
+
+test("wood collection faster with double-bit-axe", () => {
+  const instructions1: Instructions = {
+    startingRes: nullRes,
+    resPatches: {
+      woodline: {type: "wood", distance: 1},
+    },
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "woodline"}],
+    },
+  };
+  const sim1 = simulateGame(instructions1, 200, defaultModifiers());
+  expect(sim1.resAndPopHistory[199].wood).toMatchInlineSnapshot(`69.64920273348484`);
+
+  const instructions2: Instructions = {
+    startingRes: {...nullRes, food: 100, wood: 50},
+    resPatches: {
+      woodline: {type: "wood", distance: 1},
+    },
+    entities: {
+      v1: {type: "villager"},
+      lumercamp: {type: "lumberCamp"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "woodline"}],
+      lumercamp: [{type: "research", technology: "doubleBitAxe"}],
+    },
+  };
+  const sim2 = simulateGame(instructions2, 200, defaultModifiers());
+  expect(sim2.resAndPopHistory[199].wood).toMatchInlineSnapshot(`80.78381117661829`);
+});
+
+test("farm and wood collection faster with wheelbarrow", () => {
+  const instructions1: Instructions = {
+    startingRes: nullRes,
+    resPatches: {
+      farm: {type: "farm", distance: 1},
+      woodline: {type: "wood", distance: 5},
+    },
+    entities: {
+      v1: {type: "villager"},
+      v2: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "farm"}],
+      v2: [{type: "gather", resId: "woodline"}],
+    },
+  };
+  const sim1 = simulateGame(instructions1, 200, defaultModifiers());
+  expect(sim1.resAndPopHistory[199].food).toMatchInlineSnapshot(`62.48421052631591`);
+  expect(sim1.resAndPopHistory[199].wood).toMatchInlineSnapshot(`50.339495798319234`);
+
+  const instructions2: Instructions = {
+    startingRes: {...nullRes, food: 175, wood: 50},
+    resPatches: {
+      farm: {type: "farm", distance: 1},
+      woodline: {type: "wood", distance: 5},
+    },
+    entities: {
+      v1: {type: "villager"},
+      v2: {type: "villager"},
+      tc: {type: "townCenter"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "farm"}],
+      v2: [{type: "gather", resId: "woodline"}],
+      tc: [{type: "research", technology: "wheelbarrow"}],
+    },
+  };
+  const sim2 = simulateGame(instructions2, 200, defaultModifiers());
+  expect(sim2.resAndPopHistory[199].food).toMatchInlineSnapshot(`67.34317542322088`);
+  expect(sim2.resAndPopHistory[199].wood).toMatchInlineSnapshot(`53.55631944052799`);
 });

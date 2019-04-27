@@ -1,4 +1,5 @@
 import {Res, Technologies, Buildings} from "./types";
+import {villGatheringData} from "./info";
 
 const rawBuildings = {
   house: {
@@ -298,6 +299,15 @@ const rawTechnologies = {
     researchTime: 75,
     requires: ["feudalAge"],
     researchedIn: "townCenter",
+    improves: {
+      villagers: {
+        walkingSpeedMultiplier: {value: 1.1, operation: "multiply"},
+      },
+      gathering: Object.keys(villGatheringData).reduce((m: any, key) => {
+        m[key] = {extraCarryingMultiplier: {value: 1.25, operation: "multiply"}};
+        return m;
+      }, {}),
+    },
   },
   castleAge: {
     icon: require("../images/technologies/feudal-age/castle-age.png"),
@@ -312,13 +322,19 @@ const rawTechnologies = {
     researchTime: 20,
     requires: ["feudalAge"],
     researchedIn: "mill",
+    improves: {
+      farmExtraFood: {value: 75, operation: "add"},
+    },
   },
   doubleBitAxe: {
     icon: require("../images/technologies/feudal-age/double-bit-axe.png"),
-    cost: {food: 50, wood: 100, gold: 0, stone: 0},
+    cost: {food: 100, wood: 50, gold: 0, stone: 0},
     researchTime: 25,
     requires: ["feudalAge"],
     researchedIn: "lumberCamp",
+    improves: {
+      gathering: {cuttingWood: {gatheringMultiplier: {value: 1.2, operation: "multiply"}}},
+    },
   },
   stoneMining: {
     icon: require("../images/technologies/feudal-age/stone-mining.png"),
@@ -326,6 +342,9 @@ const rawTechnologies = {
     researchTime: 30,
     requires: ["feudalAge"],
     researchedIn: "miningCamp",
+    improves: {
+      gathering: {miningStone: {gatheringMultiplier: {value: 1.15, operation: "multiply"}}},
+    },
   },
   goldMining: {
     icon: require("../images/technologies/feudal-age/gold-mining.png"),
@@ -333,6 +352,9 @@ const rawTechnologies = {
     researchTime: 30,
     requires: ["feudalAge"],
     researchedIn: "miningCamp",
+    improves: {
+      gathering: {miningGold: {gatheringMultiplier: {value: 1.15, operation: "multiply"}}},
+    },
   },
   cartography: {
     icon: require("../images/technologies/feudal-age/cartography.png"),
@@ -408,6 +430,7 @@ export const technologies = rawTechnologies as {
     researchTime: number;
     requires: (Technologies | Buildings)[];
     researchedIn: Buildings;
+    improves?: any;
   }
 };
 

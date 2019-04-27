@@ -48,27 +48,29 @@ const resPerSecond = (
 
 const gather = (type: GatherTypes, distance: number, modifiers: Modifiers) => {
   const {rawGatheringPerS, carryingCapacity} = villGatheringData[type];
-  const {gatheringMultiplier, extraCarryingCapacity} = modifiers.gathering[type];
+  const {gatheringMultiplier, extraCarryingCapacity, extraCarryingMultiplier} = modifiers.gathering[
+    type
+  ];
   if (type === "farming") {
     // according to https://www.reddit.com/r/aoe2/comments/7d9b9k/some_updated_completed_farming_workrate_values/
     const rawRate = Math.min(
       24 / 60,
       resPerSecond(
-        carryingCapacity + extraCarryingCapacity,
+        (carryingCapacity + extraCarryingCapacity) * extraCarryingMultiplier,
         4,
         rawGatheringPerS * gatheringMultiplier,
         modifiers.villagers.walkingSpeedMultiplier
       )
     );
     return resPerSecond(
-      carryingCapacity + extraCarryingCapacity,
+      (carryingCapacity + extraCarryingCapacity) * extraCarryingMultiplier,
       distance,
       rawRate,
       modifiers.villagers.walkingSpeedMultiplier
     );
   } else {
     return resPerSecond(
-      carryingCapacity + extraCarryingCapacity,
+      (carryingCapacity + extraCarryingCapacity) * extraCarryingMultiplier,
       distance,
       rawGatheringPerS * gatheringMultiplier,
       modifiers.villagers.walkingSpeedMultiplier
@@ -162,6 +164,7 @@ const taskToStepDesc: TaskToStepDesc = {
       startTime: info.researchTime,
       remainingTime: info.researchTime,
       until: [{type: "researchAt", percentDone: 100, technology}],
+      improves: info.improves,
     };
   },
 };
@@ -351,6 +354,23 @@ const addEntity = (opts: {
   return entity;
 };
 
+const applyResearch = (improves: any, targetModifiers: any) => {
+  Object.entries(improves).forEach(([key, val]: [any, any]) => {
+    if (val.value && val.operation) {
+      switch (val.operation) {
+        case "add":
+          targetModifiers[key] += val.value;
+          break;
+        case "multiply":
+          targetModifiers[key] *= val.value;
+          break;
+      }
+    } else {
+      applyResearch(val, targetModifiers[key]);
+    }
+  });
+};
+
 type State = {
   time: number;
   currentSteps: Step[];
@@ -412,34 +432,9 @@ export const simulateGame = (
     if (firstStep.desc.until.length) state.currentSteps.push(firstStep);
   });
 
-  /*
-  loop:
-
-  - do spoilage for sheep/deer/boars that have been gathered from in last tick.
-  - mark res as non-gathered
-
-  - perform tasks
-    - gathering: set `gathered-this-tick` flag, make sure you res not depleted yet, add event if depeleted
-    - building:
-      - check if construction id already exists,
-      - if not, subtract res, create construction entitiy with HP,
-      - add builder to each construction
-    - walk:
-      - subtract remainingDistance
-      - if luring, update boar distance
-      - if done
-        - lure: fire event "lure_${boarId}"
-        - if endLocation, update ent.distanceFromTC
-
-  - calc construction progress
-    - add to HP per builder, add event & entity if completed
-
-  - check if end/until conditions are met
-    - getNextTask check if end/until conditions are met
-  */
-
   for (; state.time < duration; state.time += 1) {
     state.researchProgress = {};
+    const applyResearches = [];
     for (const res of Object.values(decayableRes)) {
       if (res.hasBeenTouched) {
         res.patch.remaining = Math.max(0, res.patch.remaining - res.decayRate);
@@ -512,6 +507,9 @@ export const simulateGame = (
           0
         );
         state.researchProgress[technology] = (100 * (startTime - desc.remainingTime)) / startTime;
+        if (desc.remainingTime === 0 && desc.improves) {
+          applyResearches.push(desc.improves);
+        }
       } else if (desc.type === "train") {
         const {remainingTime, unit, id} = desc;
         // TODO: Add unit train speed multipliers
@@ -534,6 +532,8 @@ export const simulateGame = (
       }
     }
 
+    applyResearches.forEach(improves => applyResearch(improves, state.modifiers));
+
     for (const [id, construction] of Object.entries(state.constructions)) {
       if (construction.builders > 0) {
         construction.timeLeft -=
@@ -550,7 +550,9 @@ export const simulateGame = (
             type: "farm",
             distance: construction.distance,
             resType: "food",
-            remaining: resPerUnit.farm.amount,
+            remaining:
+              (resPerUnit.farm.amount + modifiers.farmExtraFood) *
+              modifiers.ressourceDurationMultiplier,
             hasDeposit: false,
             hpRemaining: 0,
           };
