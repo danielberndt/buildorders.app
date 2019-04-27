@@ -3,6 +3,17 @@ import {allEntities, ressources} from "../../simulator/entities";
 import css from "@emotion/css";
 import {Col} from "../../style/layout";
 
+const hashToInt = val => {
+  let hash = 0;
+  if (val.length === 0) return hash;
+  for (let i = 0; i < val.length; i++) {
+    let chr = val.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0;
+  }
+  return hash;
+};
+
 const getIcon = (entity, id) => {
   const {icon: rawIcon} = allEntities[entity];
   return Array.isArray(rawIcon) ? rawIcon[hashToInt(id) % rawIcon.length] : rawIcon;
@@ -90,28 +101,18 @@ const topInnerStyle = css({
   bottom: 0,
   left: 0,
   right: 0,
-  height: "1rem",
-  backgroundSize: "cover",
 });
-
-const hashToInt = val => {
-  let hash = 0;
-  if (val.length === 0) return hash;
-  for (let i = 0; i < val.length; i++) {
-    let chr = val.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0;
-  }
-  return hash;
-};
+const topIconStyle = css({display: "block", width: "100%"});
 
 const Top = ({type, id}) => (
   <div css={topStyle}>
-    <Col css={topInnerStyle} style={{backgroundImage: `url(${getIcon(type, id)})`}} />
+    <div css={topInnerStyle}>
+      <img src={getIcon(type, id)} alt={type} title={type} css={topIconStyle} />
+    </div>
   </div>
 );
 
-const colStyle = css({position: "relative", width: "1rem"});
+const colStyle = css({position: "relative", flex: "1rem 1 1", maxWidth: "1rem"});
 
 const EntityCol = ({entity, pixelsPerSecond, totalDuration}) => {
   const {type, createdAt, id, steps} = entity;

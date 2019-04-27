@@ -8,6 +8,7 @@ import {Text} from "../../style/text";
 import {colors} from "../../style/tokens";
 import Header from "./Header";
 import EntityCol from "./EntityCol";
+import mq from "../../style/media-queries";
 
 function getNodePosition(node) {
   if (!node) return null;
@@ -33,15 +34,12 @@ export function useRelativePosition(nodeRef) {
   return position;
 }
 
-const Timeline = ({totalSeconds, pixelsPerSecond, containerRef}) => {
+const Timeline = ({totalSeconds, pixelsPerSecond}) => {
   const labels = createArrayWith(Math.ceil(totalSeconds / 30), i => i * 30);
   return (
-    <Col>
+    <Col css={{[mq.mobile]: {display: "none"}}}>
       <div css={{height: bufferFromStart}} />
-      <div
-        css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2.5rem"}}
-        ref={containerRef}
-      >
+      <div css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2.5rem"}}>
         {labels.map(label => (
           <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>
             <Text size="xxs" lineHeight="none" color="gray_400" css={{marginTop: "-0.6em"}}>
@@ -189,15 +187,11 @@ const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
         <Row>
           <Col>
             <div css={{height: bufferFromStart}} />
-            <div css={{position: "relative", flex: "auto"}}>
+            <div css={{position: "relative", flex: "auto"}} ref={containerRef}>
               <TimeIndicator />
             </div>
           </Col>
-          <Timeline
-            totalSeconds={totalDuration - 1}
-            pixelsPerSecond={pixelsPerSecond}
-            containerRef={containerRef}
-          />
+          <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
           <EntityList
             entities={entities}
             totalDuration={totalDuration}
