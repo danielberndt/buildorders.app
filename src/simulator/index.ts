@@ -307,6 +307,7 @@ const conditionFulfilled: ConditionFulfilledObj = {
     return canAfford(state.currRes, multiply(cost, mod.costMultiplier));
   },
   researchAt: ({cond: {technology, percentDone}, state}) => {
+    if (state.completedResearch.has(technology)) return true;
     const p = state.researchProgress[technology];
     return p !== undefined && p >= percentDone;
   },
@@ -383,6 +384,7 @@ type State = {
   popSpace: number;
   maxPopSpace: number;
   researchProgress: {[T in Technologies]?: number};
+  completedResearch: Set<Technologies>;
 };
 
 export const simulateGame = (
@@ -404,6 +406,7 @@ export const simulateGame = (
     popSpace: 0,
     maxPopSpace: 0,
     researchProgress: {},
+    completedResearch: new Set(),
   };
 
   const decayableRes: {
@@ -507,8 +510,9 @@ export const simulateGame = (
           0
         );
         state.researchProgress[technology] = (100 * (startTime - desc.remainingTime)) / startTime;
-        if (desc.remainingTime === 0 && desc.improves) {
-          applyResearches.push(desc.improves);
+        if (desc.remainingTime === 0) {
+          state.completedResearch.add(technology);
+          if (desc.improves) applyResearches.push(desc.improves);
         }
       } else if (desc.type === "train") {
         const {remainingTime, unit, id} = desc;
@@ -556,6 +560,7 @@ export const simulateGame = (
             hasDeposit: false,
             hpRemaining: 0,
           };
+          console.log(state.resPatches[id].remaining);
         } else {
           const entity = addEntity({
             id,

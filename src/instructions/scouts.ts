@@ -31,7 +31,14 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", resId: "strgl"},
+      {
+        type: "gather",
+        resId: "strgl",
+        until: {type: "researchAt", technology: "horseCollar", percentDone: 50},
+      },
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f3"},
+      {type: "gather", resId: "f3"},
     ],
     v2: [
       {type: "build", building: "house", distance: 4, id: "h1"},
@@ -40,7 +47,14 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", resId: "strgl"},
+      {
+        type: "gather",
+        resId: "strgl",
+        until: {type: "researchAt", technology: "horseCollar", percentDone: 50},
+      },
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f4"},
+      {type: "gather", resId: "f4"},
     ],
     v3: [
       {type: "build", building: "house", distance: 4, id: "h2"},
@@ -49,7 +63,14 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar2"}},
       {type: "gather", resId: "boar2"},
       {type: "gather", resId: "sheep"},
-      {type: "gather", resId: "strgl"},
+      {
+        type: "gather",
+        resId: "strgl",
+        until: {type: "researchAt", technology: "horseCollar", percentDone: 50},
+      },
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f5"},
+      {type: "gather", resId: "f5"},
     ],
     tc: [
       ...createArrayWith<Task>(22 - 4, i => ({type: "train", unit: "villager", id: `v${i + 4}`})),

@@ -836,3 +836,45 @@ test("farm and wood collection faster with wheelbarrow", () => {
   expect(sim2.resAndPopHistory[199].food).toMatchInlineSnapshot(`67.34317542322088`);
   expect(sim2.resAndPopHistory[199].wood).toMatchInlineSnapshot(`53.55631944052799`);
 });
+
+test("researchAt still works if research has been done", () => {
+  const instructions1: Instructions = {
+    startingRes: {...nullRes, food: 100, wood: 50},
+    resPatches: {
+      sheep: {type: "sheep", distance: 0, count: 1},
+      woodline: {type: "wood", distance: 5},
+    },
+    entities: {
+      v1: {type: "villager"},
+      lumercamp: {type: "lumberCamp"},
+    },
+    tasks: {
+      v1: [
+        {type: "gather", resId: "sheep"},
+        {
+          type: "gather",
+          resId: "woodline",
+          until: {type: "researchAt", technology: "doubleBitAxe", percentDone: 50},
+        },
+      ],
+      lumercamp: [{type: "research", technology: "doubleBitAxe"}],
+    },
+  };
+  const {entities} = simulateGame(instructions1, 200, defaultModifiers());
+  expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "walk",
+  },
+  Object {
+    "start": 3,
+    "type": "gather",
+  },
+  Object {
+    "start": 176,
+    "type": "wait",
+  },
+]
+`);
+});
