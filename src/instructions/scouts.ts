@@ -97,7 +97,7 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "woodline2"},
     ],
     v7: [
-      {type: "build", building: "lumberCamp", atRes: "woodline1"},
+      {type: "build", building: "lumberCamp", atRes: "woodline1", id: "lumbercamp"},
       {type: "gather", resId: "woodline1"},
     ],
     v8: [{type: "gather", resId: "woodline1"}],
@@ -111,7 +111,10 @@ const scoutInstructions: Instructions = {
     ],
 
     v11: [{type: "build", building: "house", distance: 8}, {type: "gather", resId: "berries"}],
-    v12: [{type: "build", building: "mill", atRes: "berries"}, {type: "gather", resId: "berries"}],
+    v12: [
+      {type: "build", building: "mill", atRes: "berries", id: "mill"},
+      {type: "gather", resId: "berries"},
+    ],
     v13: [{type: "gather", resId: "berries"}],
     v14: [{type: "gather", resId: "berries"}],
 
@@ -168,7 +171,16 @@ const scoutInstructions: Instructions = {
       {type: "train", unit: "scoutCavalry"},
       {type: "train", unit: "scoutCavalry"},
     ],
-    // once boar2 is done, 3 on woodline2
+    lumbercamp: [
+      {type: "wait", until: {type: "researchAt", percentDone: 100, technology: "feudalAge"}},
+      {type: "wait", until: {type: "buildRes", entity: "doubleBitAxe"}},
+      {type: "research", technology: "doubleBitAxe"},
+    ],
+    mill: [
+      {type: "wait", until: {type: "researchAt", percentDone: 0, technology: "doubleBitAxe"}},
+      {type: "wait", until: {type: "buildRes", entity: "horseCollar"}},
+      {type: "research", technology: "horseCollar"},
+    ],
   },
 };
 

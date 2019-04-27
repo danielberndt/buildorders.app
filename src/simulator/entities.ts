@@ -1,7 +1,5 @@
 import {Res, Technologies, Buildings} from "./types";
 
-type Ages = "darkAge" | "feudalAge" | "castleAge" | "imperialAge";
-
 const rawBuildings = {
   house: {
     icon: require("../images/buildings/dark-age/house.png"),

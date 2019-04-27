@@ -1,7 +1,7 @@
 import React from "react";
 import {allEntities, ressources} from "../../simulator/entities";
 import css from "@emotion/css";
-import {Col} from "../../style/layout";
+import {Col, Row} from "../../style/layout";
 
 const hashToInt = val => {
   let hash = 0;
@@ -112,22 +112,86 @@ const Top = ({type, id}) => (
   </div>
 );
 
-const colStyle = css({position: "relative", flex: "1rem 1 1", maxWidth: "1rem"});
-
 const EntityCol = ({entity, pixelsPerSecond, totalDuration}) => {
   const {type, createdAt, id, steps} = entity;
   return (
-    <Col>
+    <React.Fragment>
       {createdAt > 0 && <div css={{height: createdAt * pixelsPerSecond}} />}
-      <Col fillParent bg="gray_400" css={colStyle}>
+      <Col fillParent bg="gray_400" css={{position: "relative"}}>
         <Top type={type} id={id} />
         {steps.map((step, i) => {
           const duration = (i + 1 < steps.length ? steps[i + 1].start : totalDuration) - step.start;
           return <Step key={i} step={step} pixelsPerSecond={pixelsPerSecond} duration={duration} />;
         })}
       </Col>
-    </Col>
+    </React.Fragment>
   );
 };
 
 export default EntityCol;
+
+const clumpStyle = css({
+  position: "absolute",
+  left: 0,
+  right: 0,
+});
+
+const clumpImgStyle = css({
+  height: "auto",
+  display: "block",
+});
+
+const TechClump = ({clump, pixelsPerSecond}) => {
+  return (
+    <Row css={clumpStyle} style={{top: clump.start * pixelsPerSecond}}>
+      {clump.steps.map(step => (
+        <Col
+          key={step.desc.technology}
+          css={{overflow: "hidden"}}
+          bg="purple_200"
+          style={{
+            height: step.duration * pixelsPerSecond,
+            marginTop: (step.start - clump.start) * pixelsPerSecond,
+          }}
+        >
+          <img
+            src={getIcon(step.desc.technology, "")}
+            alt={step.desc.technology}
+            title={step.desc.technology}
+            css={clumpImgStyle}
+            style={{width: `${100 * clump.steps.length}%`}}
+          />
+        </Col>
+      ))}
+    </Row>
+  );
+};
+
+const findClumps = techSteps => {
+  const clumps = [];
+  let currentClump = null;
+  let currentClumpDone = 0;
+  techSteps.sort((s1, s2) => s1.start - s2.start);
+  for (let step of techSteps) {
+    if (step.start > currentClumpDone) {
+      currentClump = {start: step.start, steps: [step]};
+      clumps.push(currentClump);
+      currentClumpDone = step.start + step.duration;
+    } else {
+      currentClump.steps.push(step);
+      currentClumpDone = Math.max(step.start + step.duration, currentClumpDone);
+    }
+  }
+  return clumps;
+};
+
+export const TechCol = ({techSteps, pixelsPerSecond}) => {
+  const clumps = findClumps(techSteps);
+  return (
+    <Col fillParent bg="gray_600" css={{position: "relative"}}>
+      {clumps.map((c, i) => (
+        <TechClump key={i} clump={c} pixelsPerSecond={pixelsPerSecond} />
+      ))}
+    </Col>
+  );
+};

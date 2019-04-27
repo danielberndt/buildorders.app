@@ -7,7 +7,7 @@ import {formatTime} from "../../lib/format";
 import {Text} from "../../style/text";
 import {colors} from "../../style/tokens";
 import Header from "./Header";
-import EntityCol from "./EntityCol";
+import EntityCol, {TechCol} from "./EntityCol";
 import mq from "../../style/media-queries";
 
 function getNodePosition(node) {
@@ -108,31 +108,22 @@ const PopIndicator = ({pop, isOdd}) => (
   </div>
 );
 
-const getPopGroups = entities => {
-  let currPopGroupCount = 0;
-  let currPopGroup = [];
-  const popGroups = [];
-  Object.values(entities).forEach(ent => {
-    currPopGroup.push(ent);
-    if (ent.category === "unit") currPopGroupCount += 1;
-    if (currPopGroupCount === 5) {
-      popGroups.push(currPopGroup);
-      currPopGroup = [];
-      currPopGroupCount = 0;
-    }
-  });
-  if (currPopGroup.length) popGroups.push(currPopGroup);
-  return popGroups;
-};
+const colStyle = css({flex: "1rem 1 1", maxWidth: "1rem"});
 
-const PopGroup = ({group, pixelsPerSecond, totalDuration, isOdd, isLast, pop}) => (
+const PopGroup = ({group, pixelsPerSecond, totalDuration, isOdd, isLast, pop, showTechSteps}) => (
   <div css={{position: "relative"}}>
     {!isLast && <PopIndicator pop={pop + 5} isOdd={isOdd} />}
     <Row sp={0} px={0} bg={isOdd ? "transparent" : "gray_800"}>
+      {showTechSteps && (
+        <Col css={colStyle}>
+          <div css={{height: bufferFromStart}} />
+          <TechCol techSteps={showTechSteps} pixelsPerSecond={pixelsPerSecond} />
+        </Col>
+      )}
       {group
         .filter(entity => entity.steps.some(s => s.desc.type !== "wait"))
         .map(entity => (
-          <Col key={entity.id}>
+          <Col key={entity.id} css={colStyle}>
             <div css={{height: bufferFromStart}} />
             <EntityCol
               entity={entity}
@@ -145,8 +136,46 @@ const PopGroup = ({group, pixelsPerSecond, totalDuration, isOdd, isLast, pop}) =
   </div>
 );
 
+const getPopGroups = entities => {
+  let currPopGroupCount = 0;
+  let currPopGroup = [];
+  const popGroups = [];
+  entities.forEach(ent => {
+    currPopGroup.push(ent);
+    if (ent.category === "unit") currPopGroupCount += 1;
+    if (currPopGroupCount === 5) {
+      popGroups.push(currPopGroup);
+      currPopGroup = [];
+      currPopGroupCount = 0;
+    }
+  });
+  if (currPopGroup.length) popGroups.push(currPopGroup);
+  return popGroups;
+};
+
 const EntityList = React.memo(({entities, pixelsPerSecond, totalDuration}) => {
-  const popGroups = getPopGroups(entities);
+  const techSteps = [];
+  const restList = [];
+  // Don't show a full column for each building which only does research. Instead create
+  // a TechCol which lists all research
+  Object.values(entities).forEach(ent => {
+    const onlyTechResearch =
+      ent.steps.some(s => s.desc.type === "research") &&
+      ent.steps.every(s => s.desc.type === "research" || s.desc.type === "wait");
+    if (onlyTechResearch) {
+      ent.steps.forEach((step, i) => {
+        if (step.desc.type === "research") {
+          const duration =
+            (i + 1 < ent.steps.length ? ent.steps[i + 1].start : totalDuration) - step.start;
+          techSteps.push({...step, duration});
+        }
+      });
+    } else {
+      restList.push(ent);
+    }
+  });
+  const popGroups = getPopGroups(restList);
+
   return popGroups.map((group, i) => (
     <PopGroup
       key={i}
@@ -156,6 +185,7 @@ const EntityList = React.memo(({entities, pixelsPerSecond, totalDuration}) => {
       group={group}
       pixelsPerSecond={pixelsPerSecond}
       totalDuration={totalDuration}
+      showTechSteps={i === 0 && techSteps.length && techSteps}
     />
   ));
 });
