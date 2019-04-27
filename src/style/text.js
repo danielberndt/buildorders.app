@@ -42,8 +42,7 @@ export const Text = React.forwardRef((props, ref) => {
   if (weight) cssList.push(classes.fontWeight[weight]);
   if (lineHeight) cssList.push(classes.lineHeight[lineHeight]);
   if (align) cssList.push(classes.textAlign[align]);
-  if (color) {
-    cssList.push(classes.color[color]);
-  }
+  if (color) cssList.push(classes.color[color]);
+
   return <Comp ref={ref} css={cssList} {...rest} {...passThrough} />;
 });

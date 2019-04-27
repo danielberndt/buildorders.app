@@ -324,6 +324,7 @@ const addEntity = (opts: {
   const entity: Entity = {
     id,
     type,
+    category: type in units ? "unit" : "building",
     createdAt: state.time,
     steps: [],
     remainingTasks: tasks || [],

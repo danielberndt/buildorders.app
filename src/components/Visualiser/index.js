@@ -33,27 +33,41 @@ export function useRelativePosition(nodeRef) {
   return position;
 }
 
-const Timeline = ({totalSeconds, pixelsPerSecond}) => {
+const Timeline = ({totalSeconds, pixelsPerSecond, containerRef}) => {
   const labels = createArrayWith(Math.ceil(totalSeconds / 30), i => i * 30);
   return (
-    <div css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2.5rem"}}>
-      {labels.map(label => (
-        <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>
-          <Text size="xxs" lineHeight="none" css={{marginTop: "-0.6em"}}>
-            {formatTime(label)}
-          </Text>
-        </div>
-      ))}
-    </div>
+    <Col>
+      <div css={{height: bufferFromStart}} />
+      <div
+        css={{position: "relative", height: totalSeconds * pixelsPerSecond, width: "2.5rem"}}
+        ref={containerRef}
+      >
+        {labels.map(label => (
+          <div key={label} css={{position: "absolute", top: label * pixelsPerSecond, left: 0}}>
+            <Text size="xxs" lineHeight="none" color="gray_400" css={{marginTop: "-0.6em"}}>
+              {formatTime(label)}
+            </Text>
+          </div>
+        ))}
+      </div>
+    </Col>
   );
 };
 
 const bufferFromStart = 100;
 
-const timeIndicatorStyle = css({
+const timeIndicatorContainerStyle = css({
   position: "sticky",
-  borderBottom: `1px solid ${colors.gray_600}`,
   top: bufferFromStart,
+  zIndex: 2,
+});
+
+const timeIndicatorStyle = css({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: ["96vw", "calc(100vw - 1rem)"],
+  borderBottom: `1px solid ${colors.white_a10}`,
 });
 
 const timeIndicatorArrowStyle = css({
@@ -69,11 +83,84 @@ const timeIndicatorArrowStyle = css({
 });
 
 const TimeIndicator = () => (
-  <div css={timeIndicatorStyle}>
-    <div css={timeIndicatorArrowStyle} />
+  <div css={timeIndicatorContainerStyle}>
+    <div css={timeIndicatorStyle}>
+      <div css={timeIndicatorArrowStyle} />
+    </div>
   </div>
 );
 
+const popOuterStyle = css({
+  position: "sticky",
+  top: "2rem",
+});
+const popInnerStyle = css({
+  position: "absolute",
+  top: 0,
+  right: 0,
+});
+
+const PopIndicator = ({pop, isOdd}) => (
+  <div css={popOuterStyle}>
+    <Row css={popInnerStyle} px={1} py={0}>
+      <Text size="xxs" weight="bold" color={isOdd ? "gray_600" : "gray_700"}>
+        {pop}
+      </Text>
+    </Row>
+  </div>
+);
+
+const getPopGroups = entities => {
+  let currPopGroupCount = 0;
+  let currPopGroup = [];
+  const popGroups = [];
+  Object.values(entities).forEach(ent => {
+    currPopGroup.push(ent);
+    if (ent.category === "unit") currPopGroupCount += 1;
+    if (currPopGroupCount === 5) {
+      popGroups.push(currPopGroup);
+      currPopGroup = [];
+      currPopGroupCount = 0;
+    }
+  });
+  if (currPopGroup.length) popGroups.push(currPopGroup);
+  return popGroups;
+};
+
+const PopGroup = ({group, pixelsPerSecond, totalDuration, isOdd, isLast, pop}) => (
+  <div css={{position: "relative"}}>
+    {!isLast && <PopIndicator pop={pop + 5} isOdd={isOdd} />}
+    <Row sp={0} px={0} bg={isOdd ? "transparent" : "gray_800"}>
+      {group
+        .filter(entity => entity.steps.some(s => s.desc.type !== "wait"))
+        .map(entity => (
+          <Col key={entity.id}>
+            <div css={{height: bufferFromStart}} />
+            <EntityCol
+              entity={entity}
+              pixelsPerSecond={pixelsPerSecond}
+              totalDuration={totalDuration}
+            />
+          </Col>
+        ))}
+    </Row>
+  </div>
+);
+
+const EntityList = React.memo(({entities, pixelsPerSecond, totalDuration}) => {
+  const popGroups = getPopGroups(entities);
+  return popGroups.map((group, i) => (
+    <PopGroup
+      key={i}
+      isLast={i === popGroups.length - 1}
+      isOdd={i % 2 === 1}
+      pop={i * 5}
+      group={group}
+      pixelsPerSecond={pixelsPerSecond}
+      totalDuration={totalDuration}
+    />
+  ));
+});
 const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
   const containerRef = React.useRef();
   const scrollPos = useRelativePosition(containerRef);
@@ -98,25 +185,24 @@ const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
   return (
     <Col css={{position: "relative"}} bg="gray_700">
       <Header time={currentTime} res={currentRes} />
-      <div css={{height: bufferFromStart}} />
-      <Col css={{position: "relative"}} ref={containerRef} px={1}>
-        <TimeIndicator />
-        <Row sp={0}>
-          <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
-          {React.useMemo(
-            () =>
-              Object.values(entities)
-                .filter(entity => entity.steps.some(s => s.desc.type !== "wait"))
-                .map(entity => (
-                  <EntityCol
-                    key={entity.id}
-                    entity={entity}
-                    pixelsPerSecond={pixelsPerSecond}
-                    totalDuration={totalDuration}
-                  />
-                )),
-            [entities, totalDuration, pixelsPerSecond]
-          )}
+      <Col css={{position: "relative"}} px={1}>
+        <Row>
+          <Col>
+            <div css={{height: bufferFromStart}} />
+            <div css={{position: "relative", flex: "auto"}}>
+              <TimeIndicator />
+            </div>
+          </Col>
+          <Timeline
+            totalSeconds={totalDuration - 1}
+            pixelsPerSecond={pixelsPerSecond}
+            containerRef={containerRef}
+          />
+          <EntityList
+            entities={entities}
+            totalDuration={totalDuration}
+            pixelsPerSecond={pixelsPerSecond}
+          />
         </Row>
       </Col>
       <div css={{height: "100vh"}} />

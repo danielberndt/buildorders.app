@@ -157,7 +157,8 @@ const scoutInstructions: Instructions = {
       {type: "build", building: "lumberCamp", atRes: "woodline2"},
       {type: "gather", resId: "woodline2"},
     ],
-    v22: [{type: "gather", resId: "strgl"}],
+
+    v22: [{type: "build", building: "house", distance: 4}, {type: "gather", resId: "strgl"}],
     v23: [{type: "gather", resId: "strgl"}],
     v24: [{type: "gather", resId: "strgl"}],
     v25: [{type: "gather", resId: "strgl"}],

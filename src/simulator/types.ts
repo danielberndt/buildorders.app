@@ -86,6 +86,7 @@ export type Step = {
 export type Entity = {
   id: string;
   type: Units | Buildings;
+  category: "unit" | "building";
   createdAt: number;
   steps: Step[];
   remainingTasks: Task[];
