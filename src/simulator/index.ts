@@ -92,19 +92,15 @@ type TaskToDist = {
 const taskToDistance: TaskToDist = {
   build: (task, resPatches) => ("atRes" in task ? resPatches[task.atRes].distance : task.distance),
   gather: ({resId}, resPatches) => resPatches[resId].distance,
-  lure: ({boarId}, resPatches) => resPatches[boarId].distance + 4, // because we've got arrows, but need to run through tc
+  lure: ({boarId}, resPatches) => resPatches[boarId].distance,
 };
 
 type TaskToStepDesc = {
-  [P in TaskType]: (opts: {
-    task: FindByType<Task, P>;
-    entity: Entity;
-    resPatches: EnhancedResPatches;
-  }) => StepDesc
+  [P in TaskType]: (opts: {task: FindByType<Task, P>; resPatches: EnhancedResPatches}) => StepDesc
 };
 
 const taskToStepDesc: TaskToStepDesc = {
-  build: ({task}) => {
+  build: ({task, resPatches}) => {
     const {type, building, id: maybeId} = task;
     const id = maybeId || generateId("build", building);
     return {
@@ -112,6 +108,7 @@ const taskToStepDesc: TaskToStepDesc = {
       building,
       id,
       isDepositAtRes: "atRes" in task ? task.atRes : null,
+      distanceFromTC: "atRes" in task ? resPatches[task.atRes].distance : task.distance,
       until: [{type: "event", name: `buldingFinish-${id}`}],
     };
   },
@@ -128,12 +125,12 @@ const taskToStepDesc: TaskToStepDesc = {
       until: [...(until ? [until] : []), {type: "event", name: `resDepleted-${resId}`}],
     };
   },
-  lure: ({task, entity}) => {
-    const walkDist = euclidianDist(entity.distanceFromTC || 0, 0);
-    const {boarId} = task;
+  lure: ({task, resPatches}) => {
+    const boar = resPatches[task.boarId];
+    const walkDist = euclidianDist(boar.distance, 0) + 4; // need to run through tc
     return {
       type: "walk",
-      luringBoarId: boarId,
+      luringBoarId: task.boarId,
       endLocation: 0,
       remainingDistance: walkDist,
       until: [{type: "atTarget"}],
@@ -175,7 +172,7 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
   const nextTask = entity.remainingTasks.shift() || {type: "wait"};
   // check if we need to walk there first
   const distanceFn = taskToDistance[nextTask.type];
-  if (nextTask !== entity.atTaskLocation && distanceFn && entity.distanceFromTC !== null) {
+  if (distanceFn && entity.distanceFromTC !== null) {
     let walkDist: number;
     let taskDistFromTc: number;
     if (
@@ -188,17 +185,20 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
       taskDistFromTc = distanceFn(nextTask as any, state.resPatches);
       walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
     }
+    // console.log(nextTask);
+    // console.log({walkDist, distanceFromTC: entity.distanceFromTC});
     if (walkDist > 0) {
       return {
         type: "walk",
         endLocation: taskDistFromTc,
         remainingDistance: walkDist,
-        targetTask: nextTask,
+        targetStepDesc: taskToStepDesc[nextTask.type]({
+          task: nextTask as any,
+          resPatches: state.resPatches,
+        }),
         targetRes: "atRes" in nextTask ? nextTask.atRes : null,
         until: [...(nextTask.until ? [nextTask.until] : []), {type: "atTarget"}],
       };
-    } else {
-      entity.atTaskLocation = nextTask;
     }
   }
   if (nextTask.type === "gather") {
@@ -207,7 +207,10 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
       return {
         type: "kill",
         boarId: nextTask.resId,
-        targetTask: nextTask,
+        targetStepDesc: taskToStepDesc[nextTask.type]({
+          task: nextTask as any,
+          resPatches: state.resPatches,
+        }),
         until: [
           ...(nextTask.until ? [nextTask.until] : []),
           {type: "event", name: `killed-boar-${nextTask.resId}`},
@@ -216,7 +219,6 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
     }
   }
   return taskToStepDesc[nextTask.type]({
-    entity,
     task: nextTask as any,
     resPatches: state.resPatches,
   });
@@ -237,6 +239,27 @@ const getNextStep = (entity: Entity, state: State): Step => {
         state.modifiers.entities[stepDesc.technology].costMultiplier
       )
     );
+  } else {
+    let buildStep;
+    if (stepDesc.type === "build") buildStep = stepDesc;
+    if (!buildStep && "targetStepDesc" in stepDesc && stepDesc.targetStepDesc.type === "build") {
+      buildStep = stepDesc.targetStepDesc;
+    }
+    if (buildStep) {
+      const {id, building, isDepositAtRes, distanceFromTC} = buildStep;
+      if (!state.constructions[id]) {
+        const {constructionTime, cost} = buildings[building];
+        state.constructions[id] = {
+          builders: 0,
+          timeLeft: constructionTime,
+          building,
+          isDepositAtRes,
+          distance: distanceFromTC,
+        };
+        subtractInPlace(state.currRes, cost);
+        state.events.add(`constructionAdded-${id}`);
+      }
+    }
   }
   return {desc: stepDesc, entity, start: state.time};
 };
@@ -246,12 +269,8 @@ const processConditions = (step: Step, state: State): Step => {
   let i = 0;
   while (isStepCompleted(currentStep, state)) {
     i += 1;
-    if ("targetTask" in currentStep.desc) {
-      const nextStepDesc = taskToStepDesc[currentStep.desc.targetTask.type]({
-        entity: currentStep.entity,
-        task: currentStep.desc.targetTask as any,
-        resPatches: state.resPatches,
-      });
+    if ("targetStepDesc" in currentStep.desc) {
+      const nextStepDesc = currentStep.desc.targetStepDesc;
       currentStep = {desc: nextStepDesc, entity: currentStep.entity, start: state.time};
     } else {
       currentStep = getNextStep(currentStep.entity, state);
@@ -333,7 +352,6 @@ const addEntity = (opts: {
     steps: [],
     remainingTasks: tasks || [],
     distanceFromTC,
-    atTaskLocation: null,
     atRes: null,
   };
   const info = allEntities[type];
@@ -448,18 +466,7 @@ export const simulateGame = (
     for (const step of state.currentSteps) {
       const {desc} = step;
       if (desc.type === "build") {
-        const {id, building, isDepositAtRes} = desc;
-        if (!state.constructions[id]) {
-          const {constructionTime, cost} = buildings[building];
-          state.constructions[id] = {
-            builders: 0,
-            timeLeft: constructionTime,
-            building,
-            isDepositAtRes,
-            distance: step.entity.distanceFromTC || 0,
-          };
-          subtractInPlace(state.currRes, cost);
-        }
+        const {id} = desc;
         state.constructions[id].builders += 1;
       } else if (desc.type === "walk") {
         const {remainingDistance} = desc;
@@ -472,9 +479,7 @@ export const simulateGame = (
             res.hpRemaining -= 6;
             state.events.add(`lure_${desc.luringBoarId}`);
             step.entity.atRes = null;
-            step.entity.atTaskLocation = null;
           } else {
-            step.entity.atTaskLocation = desc.targetTask;
             step.entity.atRes = desc.targetRes;
           }
           step.entity.distanceFromTC = desc.endLocation;
@@ -560,7 +565,6 @@ export const simulateGame = (
             hasDeposit: false,
             hpRemaining: 0,
           };
-          console.log(state.resPatches[id].remaining);
         } else {
           const entity = addEntity({
             id,

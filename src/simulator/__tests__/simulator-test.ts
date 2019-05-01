@@ -232,19 +232,19 @@ Array [
     "type": "walk",
   },
   Object {
-    "start": 24,
+    "start": 19,
     "type": "walk",
   },
   Object {
-    "start": 48,
+    "start": 43,
     "type": "kill",
   },
   Object {
-    "start": 94,
+    "start": 89,
     "type": "gather",
   },
   Object {
-    "start": 515,
+    "start": 510,
     "type": "wait",
   },
 ]
@@ -320,7 +320,7 @@ test("train vill until enough food", () => {
         {type: "build", building: "house", distance: 4, id: "h1"},
       ],
       v2: [
-        {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "house"}},
+        {type: "gather", resId: "strgl", until: {type: "event", name: "constructionAdded-h1"}},
         {type: "build", building: "house", distance: 4, id: "h1"},
       ],
       tc: [
@@ -337,7 +337,7 @@ Object {
   "maxPopSpace": 10,
   "popSpace": 2,
   "stone": 0,
-  "wood": 0.5323741007194833,
+  "wood": 0.8129496402878287,
 }
 `);
   expect(entities.v1.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
@@ -383,11 +383,11 @@ Array [
     "type": "gather",
   },
   Object {
-    "start": 231,
+    "start": 232,
     "type": "walk",
   },
   Object {
-    "start": 239,
+    "start": 240,
     "type": "build",
   },
   Object {
@@ -873,6 +873,80 @@ Array [
   },
   Object {
     "start": 176,
+    "type": "wait",
+  },
+]
+`);
+});
+
+test("if two conditions wait for res, only yield it for the first", () => {
+  const instructions1: Instructions = {
+    startingRes: {...nullRes, wood: 20},
+    resPatches: {
+      woodline: {type: "wood", distance: 1},
+    },
+    entities: {
+      v1: {type: "villager"},
+      v2: {type: "villager"},
+      v3: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "woodline"}],
+      v2: [
+        {type: "wait", until: {type: "buildRes", entity: "house"}},
+        {
+          type: "build",
+          building: "house",
+          distance: 2,
+        },
+      ],
+      v3: [
+        {type: "wait", until: {type: "buildRes", entity: "house"}},
+        {
+          type: "build",
+          building: "house",
+          distance: 2,
+        },
+      ],
+    },
+  };
+  const {entities} = simulateGame(instructions1, 200, defaultModifiers());
+  expect(entities.v2.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "wait",
+  },
+  Object {
+    "start": 18,
+    "type": "walk",
+  },
+  Object {
+    "start": 23,
+    "type": "build",
+  },
+  Object {
+    "start": 48,
+    "type": "wait",
+  },
+]
+`);
+  expect(entities.v3.steps.map(s => ({type: s.desc.type, start: s.start}))).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "start": 0,
+    "type": "wait",
+  },
+  Object {
+    "start": 88,
+    "type": "walk",
+  },
+  Object {
+    "start": 93,
+    "type": "build",
+  },
+  Object {
+    "start": 118,
     "type": "wait",
   },
 ]

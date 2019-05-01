@@ -63,10 +63,16 @@ export type Task = RawTasks & {
 
 type RawStepDesc =
   | {type: "gather"; resId: string; resType: string; activity: GatherTypes}
-  | {type: "build"; building: Buildings; isDepositAtRes: string | null; id: string}
+  | {
+      type: "build";
+      building: Buildings;
+      isDepositAtRes: string | null;
+      id: string;
+      distanceFromTC: number;
+    }
   | {type: "walk"; endLocation: number; remainingDistance: number} & (
       | {luringBoarId: string}
-      | {targetTask: Task; targetRes: string | null})
+      | {targetStepDesc: StepDesc; targetRes: string | null})
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
   | {
@@ -76,7 +82,7 @@ type RawStepDesc =
       remainingTime: number;
       improves?: any;
     }
-  | {type: "kill"; targetTask: Task; boarId: string};
+  | {type: "kill"; targetStepDesc: StepDesc; boarId: string};
 
 export type StepDesc = RawStepDesc & {
   until: Until[];
@@ -97,7 +103,6 @@ export type Entity = {
   steps: Step[];
   remainingTasks: Task[];
   distanceFromTC: number | null;
-  atTaskLocation: Task | null;
   atRes: string | null;
 };
 
