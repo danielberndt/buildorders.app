@@ -3,6 +3,13 @@ import {buildings, units, technologies} from "./entities";
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 export type FindByType<ObjWithType, Type> = ObjWithType extends {type: Type} ? ObjWithType : never;
+export type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends (infer U)[]
+    ? RecursivePartial<U>[]
+    : T[P] extends object
+    ? RecursivePartial<T[P]>
+    : T[P]
+};
 
 export type Res = {food: number; wood: number; gold: number; stone: number};
 

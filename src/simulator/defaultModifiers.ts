@@ -7,7 +7,9 @@ export type AllAgeModifiers = ReturnType<typeof getDefaultModifiers>;
 
 const getDefaultOneAge = () => ({
   extraRessources: {food: 0, wood: 0, stone: 0, gold: 0},
-  freeTechs: [] as Technologies[], // ["loom"]
+  extraVillagerCount: 0,
+  extraPopSpace: 0,
+  freeTechs: [] as Technologies[],
   farmExtraFood: 0,
   ressourceDurationMultiplier: 1,
 

@@ -136,6 +136,35 @@ const rawBuildings = {
     popSpace: 0,
     requires: ["feudalAge"],
   },
+
+  monastery: {
+    icon: require("../images/buildings/castle-age/monastery.png"),
+    cost: {food: 0, wood: 175, gold: 0, stone: 0},
+    constructionTime: 40,
+    popSpace: 0,
+    requires: ["castleAge"],
+  },
+  castle: {
+    icon: require("../images/buildings/castle-age/castle.png"),
+    cost: {food: 0, wood: 0, gold: 0, stone: 650},
+    constructionTime: 200,
+    popSpace: 0,
+    requires: ["castleAge"],
+  },
+  siegeWorkshop: {
+    icon: require("../images/buildings/castle-age/siege-workshop.png"),
+    cost: {food: 0, wood: 200, gold: 0, stone: 0},
+    constructionTime: 40,
+    popSpace: 0,
+    requires: ["castleAge", "blacksmith"],
+  },
+  university: {
+    icon: require("../images/buildings/castle-age/university.png"),
+    cost: {food: 0, wood: 200, gold: 0, stone: 0},
+    constructionTime: 60,
+    popSpace: 0,
+    requires: ["castleAge"],
+  },
 };
 
 export const buildings = rawBuildings as {
@@ -254,6 +283,28 @@ const rawUnits = {
     trainedIn: "dock",
     requires: ["feudalAge"],
   },
+
+  camel: {
+    icon: require("../images/units/castle-age/camel.png"),
+    cost: {food: 55, wood: 0, gold: 60, stone: 0},
+    trainingTime: 22,
+    trainedIn: "stable",
+    requires: ["castleAge"],
+  },
+  cavalryArcher: {
+    icon: require("../images/units/castle-age/cavalry-archer.png"),
+    cost: {food: 0, wood: 40, gold: 60, stone: 0},
+    trainingTime: 34,
+    trainedIn: "archery",
+    requires: ["castleAge"],
+  },
+  genitour: {
+    icon: require("../images/units/castle-age/genitour.png"),
+    cost: {food: 50, wood: 35, gold: 60, stone: 0},
+    trainingTime: 25,
+    trainedIn: "archery",
+    requires: ["castleAge"],
+  },
 };
 
 export const units = rawUnits as {
@@ -371,6 +422,14 @@ const rawTechnologies = {
     requires: ["feudalAge"],
     researchedIn: "barracks",
   },
+  manAtArms: {
+    icon: require("../images/technologies/feudal-age/man-at-arms.png"),
+    cost: {food: 100, wood: 0, gold: 45, stone: 0},
+    researchTime: 40,
+    requires: ["feudalAge"],
+    researchedIn: "barracks",
+  },
+
   bloodlines: {
     icon: require("../images/technologies/feudal-age/bloodlines.png"),
     cost: {food: 150, wood: 0, gold: 100, stone: 0},
@@ -414,13 +473,76 @@ const rawTechnologies = {
     researchedIn: "blacksmith",
   },
 
-  // coinage: {
-  //   icon: require("../images/technologies/feudal-age/coinage.png"),
-  //   cost: {food: 200, wood: 0, gold: 100, stone: 0},
-  //   researchTime: 70,
-  //   requires: ["castleAge"],
-  //   researchedIn: "market",
-  // },
+  pikeman: {
+    icon: require("../images/technologies/castle-age/pikeman.png"),
+    cost: {food: 215, wood: 0, gold: 90, stone: 0},
+    researchTime: 45,
+    requires: ["castleAge"],
+    researchedIn: "barracks",
+  },
+  coinage: {
+    icon: require("../images/technologies/castle-age/coinage.png"),
+    cost: {food: 200, wood: 0, gold: 100, stone: 0},
+    researchTime: 70,
+    requires: ["castleAge"],
+    researchedIn: "market",
+  },
+  bowSaw: {
+    icon: require("../images/technologies/castle-age/bow-saw.png"),
+    cost: {food: 150, wood: 100, gold: 0, stone: 0},
+    researchTime: 50,
+    requires: ["castleAge", "doubleBitAxe"],
+    researchedIn: "lumbercamp",
+    improves: {
+      gathering: {cuttingWood: {gatheringMultiplier: {value: 1.2, operation: "multiply"}}},
+    },
+  },
+  heavyPlow: {
+    icon: require("../images/technologies/castle-age/heavy-plow.png"),
+    cost: {food: 125, wood: 125, gold: 0, stone: 0},
+    researchTime: 40,
+    requires: ["castleAge", "horseCollar"],
+    researchedIn: "mill",
+    improves: {
+      farmExtraFood: {value: 125, operation: "add"},
+      gathering: {
+        farming: {extraCarryingCapacity: {value: 1, operation: "add"}},
+        // I guess by it's description that it affects all food?
+        foraging: {extraCarryingCapacity: {value: 1, operation: "add"}},
+        eatingSheep: {extraCarryingCapacity: {value: 1, operation: "add"}},
+        hunting: {extraCarryingCapacity: {value: 1, operation: "add"}},
+        fishing: {extraCarryingCapacity: {value: 1, operation: "add"}},
+      },
+    },
+  },
+  imperialAge: {
+    icon: require("../images/technologies/castle-age/imperial-age.png"),
+    cost: {food: 1000, wood: 0, gold: 800, stone: 0},
+    researchTime: 190,
+    requires: ["castleAge"],
+    researchedIn: "townCenter",
+  },
+
+  twoManSaw: {
+    icon: require("../images/technologies/imperial-age/two-man-saw.png"),
+    cost: {food: 300, wood: 200, gold: 0, stone: 0},
+    researchTime: 100,
+    requires: ["imperialAge", "bowSaw"],
+    researchedIn: "lumbercamp",
+    improves: {
+      gathering: {cuttingWood: {gatheringMultiplier: {value: 1.1, operation: "multiply"}}},
+    },
+  },
+  cropRotation: {
+    icon: require("../images/technologies/imperial-age/crop-rotation.png"),
+    cost: {food: 250, wood: 250, gold: 0, stone: 0},
+    researchTime: 40,
+    requires: ["imperialAge", "heavyPlow"],
+    researchedIn: "mill",
+    improves: {
+      farmExtraFood: {value: 175, operation: "add"},
+    },
+  },
 };
 
 export const technologies = rawTechnologies as {

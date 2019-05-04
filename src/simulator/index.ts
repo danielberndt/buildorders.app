@@ -380,6 +380,10 @@ const addEntity = (opts: {
   return entity;
 };
 
+const applyResearchToAllAges = (improves: any, modifiers: AllAgeModifiers) => {
+  Object.values(modifiers).forEach(mod => applyResearch(improves, mod));
+};
+
 const applyResearch = (improves: any, targetModifiers: any) => {
   Object.entries(improves).forEach(([key, val]: [any, any]) => {
     if (val.value && val.operation) {
@@ -429,7 +433,7 @@ export const simulateGame = (
     time: 0,
     entities: {},
     popSpace: 0,
-    maxPopSpace: 0,
+    maxPopSpace: allAgeModifiers.darkAge.extraPopSpace,
     researchProgress: {},
     completedResearch: new Set(),
   };
@@ -437,7 +441,7 @@ export const simulateGame = (
   addInPlace(state.currRes, state.modifiers.extraRessources);
   state.modifiers.freeTechs.forEach(tName => {
     const tech = technologies[tName];
-    if (tech.improves) applyResearch(tech.improves, state.modifiers);
+    if (tech.improves) applyResearchToAllAges(tech.improves, allAgeModifiers);
     state.completedResearch.add(tName);
   });
 
@@ -564,7 +568,7 @@ export const simulateGame = (
       }
     }
 
-    applyResearches.forEach(improves => applyResearch(improves, state.modifiers));
+    applyResearches.forEach(improves => applyResearchToAllAges(improves, allAgeModifiers));
 
     for (const [id, construction] of Object.entries(state.constructions)) {
       if (construction.builders > 0) {
