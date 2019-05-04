@@ -13,7 +13,7 @@ const App = () => (
     <Visualiser
       instructions={scoutInstructions}
       duration={700}
-      modifiers={getDefaultModifiers().darkAge}
+      allAgeModifiers={getDefaultModifiers()}
     />
   </Col>
 );

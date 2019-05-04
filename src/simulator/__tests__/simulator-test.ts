@@ -3,7 +3,7 @@ import {simulateGame} from "..";
 import {Res, Instructions} from "../types";
 
 const nullRes: Res = {wood: 0, food: 0, gold: 0, stone: 0};
-const defaultModifiers = () => getDefaultModifiers().darkAge;
+const defaultModifiers = getDefaultModifiers;
 
 test("null case", () => {
   const instructions: Instructions = {

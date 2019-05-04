@@ -19,7 +19,7 @@ import {
   Units,
   Technologies,
 } from "./types";
-import {Modifiers} from "./defaultModifiers";
+import {Modifiers, AllAgeModifiers} from "./defaultModifiers";
 import {units, technologies, buildings, allEntities} from "./entities";
 
 const cloneRes = (r: Res): Res => ({food: r.food, wood: r.wood, gold: r.gold, stone: r.stone});
@@ -29,6 +29,13 @@ const subtractInPlace = (r1: Res, r2: Res) => {
   r1.wood += -r2.wood;
   r1.gold += -r2.gold;
   r1.stone += -r2.stone;
+};
+
+const addInPlace = (r1: Res, r2: Res) => {
+  r1.food += r2.food;
+  r1.wood += r2.wood;
+  r1.gold += r2.gold;
+  r1.stone += r2.stone;
 };
 
 const multiply = (r1: Res, f: Res) => ({
@@ -408,7 +415,7 @@ type State = {
 export const simulateGame = (
   instructions: Instructions,
   duration: number,
-  modifiers: Modifiers
+  allAgeModifiers: AllAgeModifiers
 ) => {
   const resAndPopHistory: (Res & {maxPopSpace: number; popSpace: number})[] = [];
 
@@ -416,8 +423,8 @@ export const simulateGame = (
     currentSteps: [],
     constructions: {},
     currRes: cloneRes(instructions.startingRes),
-    modifiers,
-    resPatches: enhanceRessources(instructions.resPatches, modifiers),
+    modifiers: allAgeModifiers.darkAge,
+    resPatches: enhanceRessources(instructions.resPatches, allAgeModifiers.darkAge),
     events: new Set(),
     time: 0,
     entities: {},
@@ -426,6 +433,13 @@ export const simulateGame = (
     researchProgress: {},
     completedResearch: new Set(),
   };
+
+  addInPlace(state.currRes, state.modifiers.extraRessources);
+  state.modifiers.freeTechs.forEach(tName => {
+    const tech = technologies[tName];
+    if (tech.improves) applyResearch(tech.improves, state.modifiers);
+    state.completedResearch.add(tName);
+  });
 
   const decayableRes: {
     [id: string]: {decayRate: number; hasBeenTouched: boolean; patch: EnhancedResPatch};
@@ -470,7 +484,7 @@ export const simulateGame = (
         state.constructions[id].builders += 1;
       } else if (desc.type === "walk") {
         const {remainingDistance} = desc;
-        const nextDist = remainingDistance - 0.8 * modifiers.villagers.walkingSpeedMultiplier;
+        const nextDist = remainingDistance - 0.8 * state.modifiers.villagers.walkingSpeedMultiplier;
         desc.remainingDistance = Math.max(0, nextDist);
         if (desc.remainingDistance === 0) {
           if ("luringBoarId" in desc) {
@@ -490,7 +504,7 @@ export const simulateGame = (
         if (res.remaining >= 0) {
           const decayRes = decayableRes[resId];
           if (decayRes) decayRes.hasBeenTouched = true;
-          let gatherAmount = gather(activity, res.hasDeposit ? 1 : res.distance, modifiers);
+          let gatherAmount = gather(activity, res.hasDeposit ? 1 : res.distance, state.modifiers);
           res.remaining -= gatherAmount;
           if (res.remaining <= 0) {
             gatherAmount += res.remaining;
@@ -504,26 +518,35 @@ export const simulateGame = (
         const res = state.resPatches[desc.boarId];
         res.hpRemaining = Math.max(
           0,
-          res.hpRemaining - 1.5 * modifiers.villagers.boarKillingSpeedMultiplier
+          res.hpRemaining - 1.5 * state.modifiers.villagers.boarKillingSpeedMultiplier
         );
         if (res.hpRemaining === 0) state.events.add(`killed-boar-${desc.boarId}`);
       } else if (desc.type === "research") {
         const {remainingTime, technology, startTime} = desc;
         // TODO: Add tech speed multipliers
         desc.remainingTime = Math.max(
-          remainingTime - 1 * modifiers.entities[technology].researchSpeedMultiplier,
+          remainingTime - 1 * state.modifiers.entities[technology].researchSpeedMultiplier,
           0
         );
         state.researchProgress[technology] = (100 * (startTime - desc.remainingTime)) / startTime;
         if (desc.remainingTime === 0) {
           state.completedResearch.add(technology);
           if (desc.improves) applyResearches.push(desc.improves);
+          if (technology in allAgeModifiers) {
+            state.modifiers = allAgeModifiers[technology as keyof typeof allAgeModifiers];
+            addInPlace(state.currRes, state.modifiers.extraRessources);
+            state.modifiers.freeTechs.forEach(tName => {
+              const tech = technologies[tName];
+              if (tech.improves) applyResearches.push(tech.improves);
+              state.completedResearch.add(tName);
+            });
+          }
         }
       } else if (desc.type === "train") {
         const {remainingTime, unit, id} = desc;
         // TODO: Add unit train speed multipliers
         desc.remainingTime = Math.max(
-          remainingTime - 1 * modifiers.entities[unit].trainingSpeedMultiplier,
+          remainingTime - 1 * state.modifiers.entities[unit].trainingSpeedMultiplier,
           0
         );
         if (desc.remainingTime === 0) {
@@ -548,7 +571,7 @@ export const simulateGame = (
         construction.timeLeft -=
           construction.builders *
           (3 / (construction.builders + 2)) *
-          modifiers.entities[construction.building].buildingSpeedMultiplier;
+          state.modifiers.entities[construction.building].buildingSpeedMultiplier;
       }
       construction.builders = 0;
       if (construction.timeLeft <= 0) {
@@ -560,8 +583,8 @@ export const simulateGame = (
             distance: construction.distance,
             resType: "food",
             remaining:
-              (resPerUnit.farm.amount + modifiers.farmExtraFood) *
-              modifiers.ressourceDurationMultiplier,
+              (resPerUnit.farm.amount + state.modifiers.farmExtraFood) *
+              state.modifiers.ressourceDurationMultiplier,
             hasDeposit: false,
             hpRemaining: 0,
           };

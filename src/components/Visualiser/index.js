@@ -189,13 +189,13 @@ const EntityList = React.memo(({entities, pixelsPerSecond, totalDuration}) => {
     />
   ));
 });
-const Visualiser = ({instructions, duration: totalDuration, modifiers}) => {
+const Visualiser = ({instructions, duration: totalDuration, allAgeModifiers}) => {
   const containerRef = React.useRef();
   const scrollPos = useRelativePosition(containerRef);
 
   const {resAndPopHistory, entities} = React.useMemo(
-    () => simulateGame(instructions, totalDuration, modifiers),
-    [instructions, totalDuration, modifiers]
+    () => simulateGame(instructions, totalDuration, allAgeModifiers),
+    [instructions, totalDuration, allAgeModifiers]
   );
 
   const pixelsPerSecond = 2;

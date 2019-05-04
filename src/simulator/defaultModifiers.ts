@@ -3,10 +3,11 @@ import {villGatheringData} from "./info";
 import {buildings, technologies, units} from "./entities";
 
 export type Modifiers = ReturnType<typeof getDefaultOneAge>;
+export type AllAgeModifiers = ReturnType<typeof getDefaultModifiers>;
 
 const getDefaultOneAge = () => ({
   extraRessources: {food: 0, wood: 0, stone: 0, gold: 0},
-  freeTechs: [], // ["loom"]
+  freeTechs: [] as Technologies[], // ["loom"]
   farmExtraFood: 0,
   ressourceDurationMultiplier: 1,
 

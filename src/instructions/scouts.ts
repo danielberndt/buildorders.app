@@ -89,7 +89,9 @@ const scoutInstructions: Instructions = {
         until: {type: "researchAt", percentDone: 90, technology: "feudalAge"},
       },
       {type: "build", building: "stable", distance: 10, id: "stable"},
-      {type: "gather", resId: "strgl"},
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f6"},
+      {type: "gather", resId: "f6"},
     ],
     v5: [
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
