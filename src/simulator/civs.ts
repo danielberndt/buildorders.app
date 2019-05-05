@@ -4,7 +4,7 @@ import {RecursivePartial, GatherTypes, Buildings, Units, Technologies, Res} from
 import {units, technologies, buildings} from "./entities";
 
 type Civ = {
-  modifiers: AllAgeModifiers;
+  getModifiers: () => AllAgeModifiers;
 };
 
 type Ages = keyof AllAgeModifiers;
@@ -26,19 +26,21 @@ const mod = (mod: RecursivePartial<Modifiers>, ...rawAges: Ages[]) => ({
   mod,
   ages: rawAges.length ? rawAges : allAges,
 });
-const applyMods = (...mods: Mod[]): AllAgeModifiers => {
-  const defaultMods = getDefaultModifiers();
-  mods.forEach(mod => mod.ages.forEach(age => applyPartialMod(mod.mod, defaultMods[age])));
-  return defaultMods;
+const applyMods = (...mods: Mod[]): (() => AllAgeModifiers) => {
+  return () => {
+    const defaultMods = getDefaultModifiers();
+    mods.forEach(mod => mod.ages.forEach(age => applyPartialMod(mod.mod, defaultMods[age])));
+    return defaultMods;
+  };
 };
 
-const unitsFrom = (building: Buildings) =>
+const unitsFrom = (...buildings: Buildings[]) =>
   Object.entries(units)
-    .filter(([k, {trainedIn}]) => trainedIn === building)
+    .filter(([k, {trainedIn}]) => buildings.includes(trainedIn))
     .map(([k]) => k as Units);
-const techsIn = (building: Buildings) =>
+const techsIn = (...buildings: Buildings[]) =>
   Object.entries(technologies)
-    .filter(([k, {researchedIn}]) => researchedIn === building)
+    .filter(([k, {researchedIn}]) => buildings.includes(researchedIn))
     .map(([k]) => k as Technologies);
 
 const asKeys = <K extends keyof T, T extends object, V>(keys: K[], val: V) => {
@@ -57,17 +59,18 @@ const techsExceptAging = (Object.keys(technologies) as Technologies[]).filter(
   t => allAges.indexOf(t as any) === -1
 );
 const allBuildings = Object.keys(buildings) as Buildings[];
+const allUnits = Object.keys(units) as Units[];
 
 const civs: {[civ: string]: Civ} = {
   aztecs: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({extraRessources: {gold: 50}}, "darkAge"),
       mod({gathering: asKeys(gatherings, {extraCarryingCapacity: 5})})
     ),
   },
 
   berbers: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({villagers: {walkingSpeedMultiplier: 1.1}}),
       mod({entities: asKeys(unitsFrom("stable"), {costMultiplier: allRes(0.85)})}, "castleAge"),
       mod({entities: asKeys(unitsFrom("stable"), {costMultiplier: allRes(0.8)})}, "imperialAge")
@@ -75,7 +78,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   britons: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({entities: {townCenter: {costMultiplier: {wood: 0.5}}}}, "castleAge", "imperialAge"),
       mod({gathering: {eatingSheep: {gatheringMultiplier: 1.25}}}),
 
@@ -86,7 +89,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   burmese: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({entities: asKeys(techsIn("monastery"), {costMultiplier: allRes(0.5)})}),
       mod({freeTechs: ["doubleBitAxe"]}, "feudalAge"),
       mod({freeTechs: ["bowSaw"]}, "castleAge"),
@@ -95,7 +98,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   byzantines: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({entities: {skirmisher: {costMultiplier: allRes(0.75)}}}),
       mod({entities: {spearman: {costMultiplier: allRes(0.75)}}}),
       mod({entities: {camel: {costMultiplier: allRes(0.75)}}}),
@@ -105,7 +108,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   celts: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({gathering: {cuttingWood: {gatheringMultiplier: 1.15}}}),
 
       // team
@@ -115,7 +118,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   chinese: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({extraVillagerCount: 3}, "darkAge"),
       mod({extraRessources: {food: -200, wood: -50}}, "darkAge"),
       mod({entities: {townCenter: {extraPopSpace: 5}}}),
@@ -129,14 +132,14 @@ const civs: {[civ: string]: Civ} = {
   },
 
   ethopians: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({extraRessources: {food: 100, gold: 100}}, "feudalAge", "castleAge", "imperialAge"),
       mod({freeTechs: ["pikeman"]}, "castleAge")
     ),
   },
 
   franks: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({gathering: {foraging: {gatheringMultiplier: 1.25}}}),
       mod({entities: {castle: {costMultiplier: allRes(0.75)}}}),
 
@@ -147,7 +150,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   goths: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod(
         {entities: asKeys(unitsFrom("barracks"), {costMultiplier: allRes(65)})},
         "feudalAge",
@@ -164,7 +167,7 @@ const civs: {[civ: string]: Civ} = {
   },
 
   huns: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({extraRessources: {wood: -100}, extraPopSpace: 200}, "darkAge"),
       mod({entities: {cavalryArcher: {costMultiplier: allRes(0.9)}}}, "castleAge"),
       mod({entities: {cavalryArcher: {costMultiplier: allRes(0.8)}}}, "imperialAge"),
@@ -179,13 +182,231 @@ const civs: {[civ: string]: Civ} = {
   },
 
   incas: {
-    modifiers: applyMods(
+    getModifiers: applyMods(
       mod({entities: {house: {extraPopSpace: 5}}}),
       mod({entities: asKeys(allBuildings, {costMultiplier: {stone: 0.85}})}),
       // TODO: add free inca llama
 
       // team
       mod({entities: {farm: {buildingSpeedMultiplier: 2}}})
+    ),
+  },
+
+  indians: {
+    getModifiers: applyMods(
+      mod({entities: {villager: {costMultiplier: allRes(0.9)}}}, "darkAge"),
+      mod({entities: {villager: {costMultiplier: allRes(0.85)}}}, "feudalAge"),
+      mod({entities: {villager: {costMultiplier: allRes(0.8)}}}, "castleAge"),
+      mod({entities: {villager: {costMultiplier: allRes(0.75)}}}, "imperialAge"),
+      mod({gathering: {fishing: {gatheringMultiplier: 1.15, extraCarryingCapacity: 15}}})
+    ),
+  },
+
+  italians: {
+    getModifiers: applyMods(
+      mod({
+        entities: asKeys(["feudalAge", "castleAge", "imperialAge"], {costMultiplier: allRes(0.85)}),
+      }),
+      mod({
+        entities: asKeys(["handCannoneer", "bombardCannon", "cannonGalleon"], {
+          costMultiplier: allRes(0.8),
+        }),
+      }),
+      mod({entities: asKeys(techsIn("dock"), {costMultiplier: allRes(0.5)})}),
+      mod({entities: {fishingShip: {costMultiplier: allRes(0.85)}}})
+    ),
+  },
+
+  japanese: {
+    getModifiers: applyMods(
+      mod({entities: asKeys(["lumberCamp", "miningCamp", "mill"], {costMultiplier: allRes(0.5)})})
+    ),
+    // TODO: add fishing ship
+  },
+
+  khmer: {
+    getModifiers: applyMods(),
+  },
+
+  koreans: {
+    getModifiers: applyMods(
+      mod({entities: asKeys(["castle", "stoneWall"], {buildingSpeedMultiplier: 1.33})}),
+      mod({entities: {watchTower: {buildingSpeedMultiplier: 1.05}}}),
+      mod({gathering: {miningStone: {gatheringMultiplier: 1.2}}}),
+
+      mod({freeTechs: ["guardTower"]}, "castleAge"),
+      mod({freeTechs: ["keep", "bombardTowerTech"]}, "imperialAge")
+    ),
+  },
+
+  magyars: {
+    getModifiers: applyMods(
+      mod({freeTechs: ["forging"]}, "feudalAge"),
+      mod({freeTechs: ["ironCasting"]}, "castleAge"),
+      mod({freeTechs: ["blastFurnace"]}, "imperialAge"),
+      mod({entities: {scoutCavalry: {costMultiplier: allRes(0.85)}}})
+    ),
+  },
+
+  malay: {
+    getModifiers: applyMods(
+      mod({
+        entities: asKeys(["feudalAge", "castleAge", "imperialAge"], {researchSpeedMultiplier: 1.8}),
+      }),
+      mod({entities: {fishTrap: {costMultiplier: allRes(0.67)}}})
+      //TODO: add fishtrap bonus
+    ),
+  },
+
+  malians: {
+    getModifiers: applyMods(
+      mod({
+        entities: asKeys(allBuildings.filter(b => b !== "farm"), {costMultiplier: {wood: 0.85}}),
+      }),
+      mod({freeTechs: ["goldMining"]}, "feudalAge"),
+      // team
+      mod({entities: asKeys(techsIn("university"), {researchSpeedMultiplier: 1.8})})
+    ),
+  },
+
+  mayans: {
+    getModifiers: applyMods(
+      mod({extraVillagerCount: 1, extraRessources: {food: -50}}, "darkAge"),
+      mod({ressourceDurationMultiplier: 1.15}),
+      mod({entities: {archer: {costMultiplier: allRes(0.9)}}}, "feudalAge"),
+      mod({entities: {archer: {costMultiplier: allRes(0.8)}}}, "castleAge"),
+      mod({entities: {archer: {costMultiplier: allRes(0.7)}}}, "imperialAge"),
+
+      // team
+      mod({entities: {stoneWall: {costMultiplier: allRes(0.5)}}})
+    ),
+  },
+
+  mongolians: {
+    getModifiers: applyMods(mod({gathering: {hunting: {gatheringMultiplier: 1.5}}})),
+  },
+
+  persians: {
+    getModifiers: applyMods(
+      mod({extraRessources: {food: 50, wood: 50}}, "darkAge"),
+      mod(
+        {entities: asKeys(techsIn("townCenter", "dock"), {researchSpeedMultiplier: 1.1})},
+        "feudalAge"
+      ),
+      mod(
+        {entities: asKeys(unitsFrom("townCenter", "dock"), {trainingSpeedMultiplier: 1.1})},
+        "feudalAge"
+      ),
+      mod(
+        {entities: asKeys(techsIn("townCenter", "dock"), {researchSpeedMultiplier: 1.15})},
+        "castleAge"
+      ),
+      mod(
+        {entities: asKeys(unitsFrom("townCenter", "dock"), {trainingSpeedMultiplier: 1.15})},
+        "castleAge"
+      ),
+      mod(
+        {entities: asKeys(techsIn("townCenter", "dock"), {researchSpeedMultiplier: 1.2})},
+        "imperialAge"
+      ),
+      mod(
+        {entities: asKeys(unitsFrom("townCenter", "dock"), {trainingSpeedMultiplier: 1.2})},
+        "imperialAge"
+      )
+    ),
+  },
+
+  portuguese: {
+    getModifiers: applyMods(
+      mod({entities: asKeys(allUnits, {costMultiplier: {gold: 0.85}})}),
+
+      // team
+      mod({freeTechs: ["cartography"]})
+    ),
+  },
+
+  saracens: {
+    getModifiers: applyMods(mod({entities: {market: {costMultiplier: {wood: 100 / 175}}}})),
+  },
+
+  spanish: {
+    getModifiers: applyMods(
+      mod({entities: asKeys(allBuildings, {buildingSpeedMultiplier: 1.3})}),
+      mod({entities: asKeys(techsIn("blacksmith"), {costMultiplier: {gold: 0}})})
+    ),
+  },
+
+  slavs: {
+    getModifiers: applyMods(
+      mod({gathering: {farming: {gatheringMultiplier: 1.15}}}),
+      mod({freeTechs: ["tracking"]}, "feudalAge"),
+      mod({entities: asKeys(unitsFrom("siegeWorkshop"), {costMultiplier: allRes(0.85)})}),
+
+      // team
+      mod({
+        entities: asKeys(["barracks", "archeryRange", "stable", "siegeWorkshop"], {
+          extraPopSpace: 5,
+        }),
+      })
+    ),
+  },
+
+  teutons: {
+    getModifiers: applyMods(
+      mod({freeTechs: ["murderHoles"]}, "castleAge"),
+      mod({entities: {farm: {costMultiplier: allRes(0.67)}}})
+    ),
+  },
+
+  turks: {
+    getModifiers: applyMods(
+      mod({
+        entities: asKeys(["bombardTowerTech", "cannonGalleonTech", "eliteCannonGalleon"], {
+          costMultiplier: allRes(0.5),
+        }),
+      }),
+      mod({freeTechs: ["lightCavalry"]}, "imperialAge"),
+      mod({freeTechs: ["chemistry", "hussar"]}, "imperialAge"),
+      mod({gathering: {miningGold: {gatheringMultiplier: 1.2}}}),
+
+      // team
+      // TODO: add all special units
+      mod({
+        entities: asKeys(["bombardCannon", "handCannoneer", "cannonGalleon"], {
+          trainingSpeedMultiplier: 1.2,
+        }),
+      })
+    ),
+  },
+
+  vietnamese: {
+    getModifiers: applyMods(mod({freeTechs: ["conscription"]}, "imperialAge")),
+  },
+
+  wikings: {
+    getModifiers: applyMods(
+      mod(
+        {
+          entities: asKeys(["galley", "demolitionRaft", "fireGalley", "cannonGalleon"], {
+            costMultiplier: allRes(0.85),
+          }),
+        },
+        "feudalAge",
+        "castleAge"
+      ),
+      mod(
+        {
+          entities: asKeys(["galley", "demolitionRaft", "fireGalley", "cannonGalleon"], {
+            costMultiplier: allRes(0.8),
+          }),
+        },
+        "imperialAge"
+      ),
+      mod({freeTechs: ["wheelbarrow"]}, "feudalAge"),
+      mod({freeTechs: ["handCart"]}, "castleAge"),
+
+      // team
+      mod({entities: {dock: {costMultiplier: allRes(0.85)}}})
     ),
   },
 };

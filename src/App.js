@@ -4,6 +4,7 @@ import {Text} from "./style/text";
 import Visualiser from "./components/Visualiser";
 import scoutInstructions from "./instructions/scouts";
 import {getDefaultModifiers} from "./simulator/defaultModifiers";
+import "./simulator/civs";
 
 const App = () => (
   <Col>

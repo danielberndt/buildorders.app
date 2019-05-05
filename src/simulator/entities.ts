@@ -305,6 +305,28 @@ const rawUnits = {
     trainedIn: "archery",
     requires: ["castleAge"],
   },
+
+  handCannoneer: {
+    icon: require("../images/units/imperial-age/hand-cannoneer.png"),
+    cost: {food: 45, wood: 0, gold: 50, stone: 0},
+    trainingTime: 34,
+    trainedIn: "archery",
+    requires: ["imperialAge", "chemistry"],
+  },
+  bombardCannon: {
+    icon: require("../images/units/imperial-age/bombard-cannon.png"),
+    cost: {food: 0, wood: 225, gold: 225, stone: 0},
+    trainingTime: 56,
+    trainedIn: "siegeWorkshop",
+    requires: ["imperialAge", "chemistry"],
+  },
+  cannonGalleon: {
+    icon: require("../images/units/imperial-age/cannon-galleon.png"),
+    cost: {food: 0, wood: 200, gold: 150, stone: 0},
+    trainingTime: 46,
+    trainedIn: "dock",
+    requires: ["imperialAge", "cannonGalleonTech"],
+  },
 };
 
 export const units = rawUnits as {
@@ -437,6 +459,7 @@ const rawTechnologies = {
     requires: ["feudalAge"],
     researchedIn: "stable",
   },
+
   scaleMailArmor: {
     icon: require("../images/technologies/feudal-age/scale-mail-armor.png"),
     cost: {food: 100, wood: 0, gold: 0, stone: 0},
@@ -480,6 +503,34 @@ const rawTechnologies = {
     requires: ["castleAge"],
     researchedIn: "barracks",
   },
+  lightCavalry: {
+    icon: require("../images/technologies/castle-age/light-cavalry.png"),
+    cost: {food: 150, wood: 0, gold: 50, stone: 0},
+    researchTime: 45,
+    requires: ["castleAge"],
+    researchedIn: "stable",
+  },
+  guardTower: {
+    icon: require("../images/technologies/castle-age/guard-tower.png"),
+    cost: {food: 100, wood: 250, gold: 0, stone: 0},
+    researchTime: 30,
+    requires: ["castleAge"],
+    researchedIn: "university",
+  },
+  murderHoles: {
+    icon: require("../images/technologies/castle-age/murder-holes.png"),
+    cost: {food: 200, wood: 0, gold: 0, stone: 100},
+    researchTime: 60,
+    requires: ["castleAge"],
+    researchedIn: "university",
+  },
+  ironCasting: {
+    icon: require("../images/technologies/castle-age/iron-casting.png"),
+    cost: {food: 220, wood: 0, gold: 120, stone: 0},
+    researchTime: 75,
+    requires: ["castleAge", "forging"],
+    researchedIn: "blacksmith",
+  },
   coinage: {
     icon: require("../images/technologies/castle-age/coinage.png"),
     cost: {food: 200, wood: 0, gold: 100, stone: 0},
@@ -487,6 +538,7 @@ const rawTechnologies = {
     requires: ["castleAge"],
     researchedIn: "market",
   },
+
   bowSaw: {
     icon: require("../images/technologies/castle-age/bow-saw.png"),
     cost: {food: 150, wood: 100, gold: 0, stone: 0},
@@ -515,6 +567,22 @@ const rawTechnologies = {
       },
     },
   },
+  handCart: {
+    icon: require("../images/technologies/castle-age/hand-cart.png"),
+    cost: {food: 300, wood: 200, gold: 0, stone: 0},
+    researchTime: 55,
+    requires: ["castleAge", "wheelbarrow"],
+    researchedIn: "townCenter",
+    improves: {
+      villagers: {
+        walkingSpeedMultiplier: {value: 1.1, operation: "multiply"},
+      },
+      gathering: Object.keys(villGatheringData).reduce((m: any, key) => {
+        m[key] = {extraCarryingMultiplier: {value: 1.5, operation: "multiply"}};
+        return m;
+      }, {}),
+    },
+  },
   imperialAge: {
     icon: require("../images/technologies/castle-age/imperial-age.png"),
     cost: {food: 1000, wood: 0, gold: 800, stone: 0},
@@ -523,6 +591,68 @@ const rawTechnologies = {
     researchedIn: "townCenter",
   },
 
+  keep: {
+    icon: require("../images/technologies/imperial-age/keep.png"),
+    cost: {food: 500, wood: 350, gold: 0, stone: 0},
+    researchTime: 75,
+    requires: ["imperialAge", "guardTower"],
+    researchedIn: "university",
+  },
+  chemistry: {
+    icon: require("../images/technologies/imperial-age/chemistry.png"),
+    cost: {food: 300, wood: 0, gold: 200, stone: 0},
+    researchTime: 100,
+    requires: ["imperialAge"],
+    researchedIn: "university",
+  },
+
+  cannonGalleonTech: {
+    icon: require("../images/technologies/imperial-age/cannon-galleon.png"),
+    cost: {food: 400, wood: 500, gold: 0, stone: 0},
+    researchTime: 50,
+    requires: ["imperialAge", "chemistry"],
+    researchedIn: "dock",
+  },
+  eliteCannonGalleon: {
+    icon: require("../images/technologies/imperial-age/elite-cannon-galleon.png"),
+    cost: {food: 0, wood: 525, gold: 500, stone: 0},
+    researchTime: 30,
+    requires: ["imperialAge", "cannonGalleonTech"],
+    researchedIn: "dock",
+  },
+  hussar: {
+    // are they really reusing the same icon here?
+    icon: require("../images/technologies/castle-age/light-cavalry.png"),
+    cost: {food: 500, wood: 0, gold: 600, stone: 0},
+    researchTime: 50,
+    requires: ["imperialAge", "lightCavalry"],
+    researchedIn: "stable",
+  },
+
+  blastFurnace: {
+    icon: require("../images/technologies/imperial-age/blast-furnace.png"),
+    cost: {food: 275, wood: 0, gold: 225, stone: 0},
+    researchTime: 100,
+    requires: ["imperialAge", "ironCasting"],
+    researchedIn: "blacksmith",
+  },
+  bombardTowerTech: {
+    icon: require("../images/technologies/imperial-age/bombard-tower.png"),
+    cost: {food: 800, wood: 400, gold: 0, stone: 0},
+    researchTime: 60,
+    requires: ["imperialAge", "chemistry"],
+    researchedIn: "university",
+  },
+  conscription: {
+    icon: require("../images/technologies/imperial-age/bombard-tower.png"),
+    cost: {food: 150, wood: 0, gold: 150, stone: 0},
+    researchTime: 60,
+    requires: ["imperialAge"],
+    researchedIn: "castle",
+    improves: {
+      // TODO: units from stable, barracks, archery range, castle => trainingSpeedMul: 0.67
+    },
+  },
   twoManSaw: {
     icon: require("../images/technologies/imperial-age/two-man-saw.png"),
     cost: {food: 300, wood: 200, gold: 0, stone: 0},
