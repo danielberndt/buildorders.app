@@ -1,7 +1,7 @@
 import React from "react";
 import css from "@emotion/css";
-import {Col, Row} from "../../style/layout";
-import {Text} from "../../style/text";
+import {Col, Row} from "../../../style/layout";
+import {Text} from "../../../style/text";
 import EntityCol, {TechCol} from "./EntityCol";
 
 const popOuterStyle = css({

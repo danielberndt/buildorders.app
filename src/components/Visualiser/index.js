@@ -8,7 +8,8 @@ import {Text} from "../../style/text";
 import {colors} from "../../style/tokens";
 import Header from "./Header";
 import mq from "../../style/media-queries";
-import DetailView from "./DetailView";
+import DetailView from "./DetailView/DetailView";
+import CompactView from "./CompactView/CompactView";
 
 function getNodePosition(node) {
   if (!node) return null;
@@ -109,27 +110,37 @@ const Visualiser = ({instructions, duration: totalDuration, allAgeModifiers}) =>
 
   const currentRes = resAndPopHistory[currentTime];
 
+  const [showDetailView, setShowDetailView] = React.useState(false);
+  const ViewComp = showDetailView ? DetailView : CompactView;
+
   return (
-    <Col css={{position: "relative"}} bg="gray_700">
-      <Header time={currentTime} res={currentRes} />
-      <Col css={{position: "relative"}} px={1}>
-        <Row>
-          <Col>
-            <div css={{height: bufferFromStart}} />
-            <div css={{position: "relative", flex: "auto"}} ref={containerRef}>
-              <TimeIndicator />
-            </div>
-          </Col>
-          <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
-          <DetailView
-            entities={entities}
-            totalDuration={totalDuration}
-            pixelsPerSecond={pixelsPerSecond}
-            bufferFromStart={bufferFromStart}
-          />
-        </Row>
+    <Col sp={3}>
+      <div>
+        <button onClick={() => setShowDetailView(!showDetailView)}>
+          Show {showDetailView ? "Compact" : "Detail"} View
+        </button>
+      </div>
+      <Col css={{position: "relative"}} bg="gray_700">
+        <Header time={currentTime} res={currentRes} />
+        <Col css={{position: "relative"}} px={1}>
+          <Row>
+            <Col>
+              <div css={{height: bufferFromStart}} />
+              <div css={{position: "relative", flex: "auto"}} ref={containerRef}>
+                <TimeIndicator />
+              </div>
+            </Col>
+            <Timeline totalSeconds={totalDuration - 1} pixelsPerSecond={pixelsPerSecond} />
+            <ViewComp
+              entities={entities}
+              totalDuration={totalDuration}
+              pixelsPerSecond={pixelsPerSecond}
+              bufferFromStart={bufferFromStart}
+            />
+          </Row>
+        </Col>
+        <div css={{height: "100vh"}} />
       </Col>
-      <div css={{height: "100vh"}} />
     </Col>
   );
 };

@@ -1,7 +1,7 @@
-import {GatherTypes, Res, ResPatch, PropType, StepTypes, Omit} from "./types";
+import {GatherTypes, Res, ResPatch, PropType} from "./types";
 
 export const villGatheringData: {
-  [key in GatherTypes]: {rawGatheringPerS: number; carryingCapacity: number; ressource: keyof Res}
+  [key in GatherTypes]: {rawGatheringPerS: number; carryingCapacity: number; ressource: keyof Res};
 } = {
   foraging: {rawGatheringPerS: 0.31, carryingCapacity: 10, ressource: "food"},
   eatingSheep: {rawGatheringPerS: 0.33, carryingCapacity: 10, ressource: "food"},
@@ -14,7 +14,7 @@ export const villGatheringData: {
 };
 
 export const resPerUnit: {
-  [key in PropType<ResPatch, "type">]: {amount: number; activity: GatherTypes; hp?: number}
+  [key in PropType<ResPatch, "type">]: {amount: number; activity: GatherTypes; hp?: number};
 } = {
   berries: {amount: 125, activity: "foraging"},
   sheep: {amount: 100, activity: "eatingSheep"},
