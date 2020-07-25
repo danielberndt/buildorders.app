@@ -1,6 +1,6 @@
 import React from "react";
 import css from "@emotion/css";
-import {allEntities} from "../../simulator/entities";
+import {allEntities, ressources} from "../../simulator/entities";
 
 const hashToInt = (val) => {
   let hash = 0;
@@ -34,3 +34,16 @@ export const ColTop = ({type, id}) => (
     </div>
   </div>
 );
+
+export const resTypeInfo = {
+  berries: {icon: ressources.berries.icon, color: "red_300"},
+  sheep: {icon: ressources.sheep.icon, color: "red_200"},
+  deer: {icon: ressources.deer.icon, color: "red_500"},
+  // TODO: find straggler icon
+  stragglers: {icon: ressources.wood.icon, color: "green_200"},
+  boar: {icon: ressources.boar.icon, color: "purple_300"},
+  wood: {icon: ressources.wood.icon, color: "green_400"},
+  gold: {icon: ressources.gold.icon, color: "red_300"},
+  stone: {icon: ressources.stone.icon, color: "red_300"},
+  farm: {icon: ressources.farm.icon, color: "orange_300"},
+};

@@ -15,6 +15,15 @@ html {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+* {
+  box-sizing: inherit;
+  transition-duration: inherit;
+  transition-timing-function: inherit;
+  background-size: inherit;
+  background-position: inherit;
+  background-repeat: inherit;
+}
+
 /*
 This rule determines what '1rem' refers to. On screens smaller than 30em it's always 1em = 16px
 as defined in the html tag above.

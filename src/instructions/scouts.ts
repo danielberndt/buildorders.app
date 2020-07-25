@@ -73,10 +73,10 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "f5"},
     ],
     tc: [
-      ...createArrayWith<Task>(22 - 4, i => ({type: "train", unit: "villager", id: `v${i + 4}`})),
+      ...createArrayWith<Task>(22 - 4, (i) => ({type: "train", unit: "villager", id: `v${i + 4}`})),
       {type: "research", technology: "loom"},
       {type: "research", technology: "feudalAge"},
-      ...createArrayWith<Task>(10, i => ({type: "train", unit: "villager", id: `v${i + 22}`})),
+      ...createArrayWith<Task>(10, (i) => ({type: "train", unit: "villager", id: `v${i + 22}`})),
     ],
     v4: [
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
@@ -105,7 +105,9 @@ const scoutInstructions: Instructions = {
       },
       {type: "build", building: "barracks", distance: 10},
       {type: "build", building: "stable", distance: 0, id: "stable"},
-      {type: "gather", resId: "strgl"},
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f7"},
+      {type: "gather", resId: "f7"},
     ],
     v6: [
       {type: "gather", resId: "sheep", until: {type: "event", name: "lure_boar1"}},
@@ -133,7 +135,10 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "f1"},
     ],
 
-    v11: [{type: "build", building: "house", distance: 8}, {type: "gather", resId: "berries"}],
+    v11: [
+      {type: "build", building: "house", distance: 8},
+      {type: "gather", resId: "berries"},
+    ],
     v12: [
       {type: "build", building: "mill", atRes: "berries", id: "mill"},
       {type: "gather", resId: "berries"},
@@ -184,11 +189,27 @@ const scoutInstructions: Instructions = {
       {type: "gather", resId: "woodline2"},
     ],
 
-    v22: [{type: "build", building: "house", distance: 4}, {type: "gather", resId: "strgl"}],
-    v23: [{type: "gather", resId: "strgl"}],
-    v24: [{type: "gather", resId: "strgl"}],
-    v25: [{type: "gather", resId: "strgl"}],
-
+    v22: [
+      {type: "build", building: "house", distance: 4},
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f11"},
+      {type: "gather", resId: "f11"},
+    ],
+    v23: [
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f8"},
+      {type: "gather", resId: "f8"},
+    ],
+    v24: [
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f9"},
+      {type: "gather", resId: "f9"},
+    ],
+    v25: [
+      {type: "gather", resId: "strgl", until: {type: "buildRes", entity: "farm"}},
+      {type: "build", building: "farm", distance: 0, id: "f10"},
+      {type: "gather", resId: "f10"},
+    ],
     stable: [
       {type: "train", unit: "scoutCavalry"},
       {type: "train", unit: "scoutCavalry"},

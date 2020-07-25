@@ -13,7 +13,7 @@ const App = () => (
     </Text>
     <Visualiser
       instructions={scoutInstructions}
-      duration={700}
+      duration={800}
       allAgeModifiers={getDefaultModifiers()}
     />
   </Col>
