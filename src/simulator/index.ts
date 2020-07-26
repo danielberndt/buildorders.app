@@ -175,8 +175,31 @@ const taskToStepDesc: TaskToStepDesc = {
 
 const euclidianDist = (d1: number, d2: number) => (d1 * d1 + d2 * d2) ** 0.5;
 
+const noNeedToWalk = (prevStep: Step | null, nextTask: Task, state: State) => {
+  if (prevStep) {
+    if (
+      prevStep.desc.type === "build" &&
+      prevStep.desc.building === "farm" &&
+      nextTask.type === "gather" &&
+      nextTask.resId === prevStep.desc.id
+    ) {
+      return true;
+    }
+  }
+  if (nextTask.type === "gather") {
+    const res = state.resPatches[nextTask.resId];
+    if (res.hpRemaining > 0) {
+      // needs to be killed instead of walking to it!
+      return true;
+    }
+  }
+  return false;
+};
+
 const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
   const nextTask = entity.remainingTasks.shift() || {type: "wait"};
+  const prevStep = entity.steps.length > 0 ? entity.steps[entity.steps.length - 1] : null;
+
   // check if we need to walk there first
   const distanceFn = taskToDistance[nextTask.type];
   if (distanceFn && entity.distanceFromTC !== null) {
@@ -191,6 +214,10 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
     } else {
       taskDistFromTc = distanceFn(nextTask as any, state.resPatches);
       walkDist = euclidianDist(entity.distanceFromTC, taskDistFromTc);
+      if (!noNeedToWalk(prevStep, nextTask, state)) {
+        // always walk at least 2 steps
+        walkDist = Math.max(2, walkDist);
+      }
     }
     // console.log(nextTask);
     // console.log({walkDist, distanceFromTC: entity.distanceFromTC});
@@ -208,16 +235,27 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
       };
     }
   }
+
+  // kill boar if it's still alive
   if (nextTask.type === "gather") {
     const res = state.resPatches[nextTask.resId];
     if (res.hpRemaining > 0) {
+      const gatheringStep = taskToStepDesc[nextTask.type]({
+        task: nextTask as any,
+        resPatches: state.resPatches,
+      });
+      const walkToCorpseStep: StepDesc = {
+        type: "walk",
+        targetStepDesc: gatheringStep,
+        targetRes: nextTask.resId,
+        endLocation: 0,
+        remainingDistance: 3,
+        until: [{type: "atTarget"}],
+      };
       return {
         type: "kill",
         boarId: nextTask.resId,
-        targetStepDesc: taskToStepDesc[nextTask.type]({
-          task: nextTask as any,
-          resPatches: state.resPatches,
-        }),
+        targetStepDesc: walkToCorpseStep,
         until: [
           ...(nextTask.until ? [nextTask.until] : []),
           {type: "event", name: `killed-boar-${nextTask.resId}`},
@@ -225,6 +263,7 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
       };
     }
   }
+
   return taskToStepDesc[nextTask.type]({
     task: nextTask as any,
     resPatches: state.resPatches,
@@ -570,6 +609,7 @@ export const simulateGame = (
 
     applyResearches.forEach((improves) => applyResearchToAllAges(improves, allAgeModifiers));
 
+    // Buildings
     for (const [id, construction] of Object.entries(state.constructions)) {
       if (construction.builders > 0) {
         construction.timeLeft -=
@@ -611,6 +651,8 @@ export const simulateGame = (
         delete state.constructions[id];
       }
     }
+
+    // Check whats next
     for (let i = 0; i < state.currentSteps.length; i += 1) {
       const step = state.currentSteps[i];
       const nextStep = processConditions(step, state);
@@ -621,6 +663,8 @@ export const simulateGame = (
         step.entity.steps.push(nextStep);
       }
     }
+
+    // Update res and pop histort
     resAndPopHistory.push({
       ...cloneRes(state.currRes),
       maxPopSpace: state.maxPopSpace,

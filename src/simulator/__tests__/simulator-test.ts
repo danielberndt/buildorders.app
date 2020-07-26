@@ -250,10 +250,14 @@ test("luring a boar", () => {
       },
       Object {
         "start": 89,
+        "type": "walk",
+      },
+      Object {
+        "start": 93,
         "type": "gather",
       },
       Object {
-        "start": 510,
+        "start": 514,
         "type": "wait",
       },
     ]
@@ -651,7 +655,7 @@ test("condition fulfilled while walking to target", () => {
       v2: [{type: "gather", resId: "wood", until: {type: "buildRes", entity: "villager"}}],
     },
   };
-  const {resAndPopHistory, entities} = simulateGame(instructions, 100, defaultModifiers());
+  const {entities} = simulateGame(instructions, 100, defaultModifiers());
   expect(entities.v1.steps.map((s) => ({type: s.desc.type, start: s.start})))
     .toMatchInlineSnapshot(`
     Array [
@@ -981,6 +985,47 @@ test("if two conditions wait for res, only yield it for the first", () => {
       Object {
         "start": 118,
         "type": "wait",
+      },
+    ]
+  `);
+});
+
+test("switch from one gathering source to the next with distance 0 incurs a delay", () => {
+  const instructions: Instructions = {
+    startingRes: nullRes,
+    resPatches: {
+      boar1: {type: "boar", distance: 0},
+      sheep: {type: "sheep", count: 1, distance: 0},
+    },
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [
+        {type: "gather", resId: "boar1"},
+        {type: "gather", resId: "sheep"},
+      ],
+    },
+  };
+  const {entities} = simulateGame(instructions, 500, defaultModifiers());
+  expect(entities.v1.steps.map((s) => ({type: s.desc.type, start: s.start})))
+    .toMatchInlineSnapshot(`
+    Array [
+      Object {
+        "start": 0,
+        "type": "walk",
+      },
+      Object {
+        "start": 3,
+        "type": "gather",
+      },
+      Object {
+        "start": 424,
+        "type": "walk",
+      },
+      Object {
+        "start": 427,
+        "type": "gather",
       },
     ]
   `);
