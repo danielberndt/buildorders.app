@@ -1,8 +1,10 @@
 import React from "react";
+import {create} from "zustand";
 import {Col, Row} from "../../../style/layout";
 import {ColTop, resTypeInfo, getIcon} from "../shared";
 import {css} from "@emotion/core";
 import {colors} from "../../../style/tokens";
+import {useMeasure} from "../../../hooks/useMeasure";
 
 const buildingToResCategory = {
   mill: "food",
@@ -15,6 +17,7 @@ const resTypeToCat = {
   wood: "wood",
   kill: "food",
   sheep: "food",
+  berries: "food",
   boar: "food",
   farm: "food",
   deer: "food",
@@ -47,7 +50,7 @@ const compactUnitSteps = (steps) => {
       }
     }
     currStep = {
-      start: currentStart || step.start,
+      start: currentStart !== null ? currentStart : step.start,
       actionStart: step.start,
       desc: step.desc,
     };
@@ -149,7 +152,7 @@ const getBuildingSteps = ({steps, entities, activities}) => {
   return buildingLane;
 };
 
-const activitesToLanes = ({activities, iconHeightInPixels}) => {
+const activitesToLanes = ({activities, iconHeightInPixels, entities}) => {
   const allActivites = [];
   Object.entries(activities).forEach(([key, instances]) => {
     instances.forEach((val) => {
@@ -161,6 +164,14 @@ const activitesToLanes = ({activities, iconHeightInPixels}) => {
   });
   if (!allActivites.length) return [];
   allActivites.sort((a1, a2) => a1.start - a2.start);
+  allActivites.forEach((a) => {
+    if (a.entityIds.length === 1) {
+      const ent = entities[a.entityIds[0]];
+      if (ent.createdAt > 0 && a.start - ent.createdAt < 90) {
+        a.connectToEntId = ent.id;
+      }
+    }
+  });
   const first = allActivites[0];
   const lanes = [{activities: [first], busyTill: first.start + iconHeightInPixels}];
   allActivites.slice(1).forEach((a) => {
@@ -174,6 +185,23 @@ const activitesToLanes = ({activities, iconHeightInPixels}) => {
   });
   return lanes.map((l) => l.activities);
 };
+
+const withoutEl = (obj, removeKey) => {
+  const newObj = {...obj};
+  delete newObj[removeKey];
+  return newObj;
+};
+
+const [useEntityPositionStore] = create((set) => ({
+  entPositions: {},
+  connections: {},
+  setEntPosition: (entId, pos) =>
+    set((state) => ({entPositions: {...state.entPositions, [entId]: pos}})),
+  removeEntity: (entId) => set((state) => ({entPositions: withoutEl(state.entPositions, entId)})),
+  setConnection: (entId, entPos, targetPos) =>
+    set((state) => ({connections: {...state.connections, [entId]: {entPos, targetPos}}})),
+  removeConnection: (entId) => set((state) => ({connections: withoutEl(state.connections, entId)})),
+}));
 
 const entityTile = css({
   position: "absolute",
@@ -242,6 +270,69 @@ const villCountPill = css({
   justifyContent: "center",
 });
 
+const connectionsStyle = css({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+});
+
+const ConnectionLine = ({entPos, targetPos, bounds}) => {
+  const centerEnt = [entPos.left + entPos.width / 2, entPos.top + entPos.height / 2];
+  const centerTarget = [targetPos.left + targetPos.width / 2, targetPos.top + targetPos.height / 2];
+  return (
+    <svg
+      preserveAspectRatio="none"
+      style={{
+        display: "block",
+        position: "absolute",
+        width: centerTarget[0] - centerEnt[0],
+        left: centerEnt[0] - bounds.left,
+        top: centerEnt[1] - bounds.top,
+        height: centerTarget[1] - centerEnt[1],
+      }}
+      viewBox="0 0 100 100"
+      width="100%"
+      height="100%"
+    >
+      <line x1="0" y1="0" x2="100" y2="100" stroke={colors.gray_500} />
+    </svg>
+  );
+};
+
+const Connections = () => {
+  const connections = useEntityPositionStore((s) => s.connections);
+  const [bounds, ref] = useMeasure();
+  console.log({connections, bounds});
+
+  return (
+    <div css={connectionsStyle} ref={ref}>
+      {bounds &&
+        Object.entries(connections).map(([key, {entPos, targetPos}]) => (
+          <ConnectionLine key={key} entPos={entPos} targetPos={targetPos} bounds={bounds} />
+        ))}
+    </div>
+  );
+
+  // return (
+  //   <svg css={connectionsStyle} width="100%" height="100%" viewBox="0 0 100 100" ref={ref}>
+  //     {bounds &&
+  //       Object.entries(connections).map(([key, {entPos, targetPos}]) => (
+  //         <line
+  //           key={key}
+  //           x1={((entPos.left - bounds.left) / bounds.width) * 100}
+  //           y1={((entPos.top - bounds.top - 300) / bounds.height) * 100}
+  //           x2={((targetPos.left - bounds.left) / bounds.width) * 100}
+  //           y2={((targetPos.top - bounds.top - 300) / bounds.height) * 100}
+  //           stroke="black"
+  //           strokeWidth="1px"
+  //         />
+  //       ))}
+  //   </svg>
+  // );
+};
+
 const getStepInfo = (desc) => {
   switch (desc.type) {
     case "gather":
@@ -255,7 +346,7 @@ const getStepInfo = (desc) => {
         return {...resTypeInfo[desc.resType], title: desc.resType};
       }
     case "build":
-      return {icon: getIcon(desc.building, desc.id), color: "teal_300"};
+      return {icon: getIcon(desc.building, desc.id), title: desc.building, color: "teal_300"};
     case "kill":
       return {...resTypeInfo.boar, title: "attack boar"};
     case "walk":
@@ -267,10 +358,11 @@ const getStepInfo = (desc) => {
   }
 };
 
-const StepIcon = ({stepDesc}) => {
+const StepIcon = React.forwardRef(({stepDesc}, ref) => {
   const {icon, color, title} = getStepInfo(stepDesc);
   return (
     <img
+      ref={ref}
       src={icon}
       alt={title}
       title={title}
@@ -278,24 +370,47 @@ const StepIcon = ({stepDesc}) => {
       style={{borderColor: colors[color]}}
     />
   );
+});
+
+const UnitIcon = React.forwardRef(({unit}, ref) => (
+  <img
+    src={getIcon(unit.type, unit.id)}
+    alt={unit.type}
+    title={unit.type}
+    css={iconStyle}
+    ref={ref}
+  />
+));
+
+const UnitStep = ({entity, start, createdAt, buildingCreatedAt, firstStep, pixelsPerSecond}) => {
+  const {setEntPosition, removeEntity} = useEntityPositionStore((s) => ({
+    setEntPosition: s.setEntPosition,
+    removeEntity: s.removeEntity,
+  }));
+  const [position, ref] = useMeasure();
+  React.useEffect(() => {
+    if (position) setEntPosition(entity.id, position);
+  }, [entity.id, position, setEntPosition]);
+  React.useEffect(() => {
+    return () => removeEntity(entity.id);
+  }, [entity.id, removeEntity]);
+  return (
+    <Col
+      css={entityTile}
+      style={{
+        top: (start - buildingCreatedAt) * pixelsPerSecond,
+        height: (createdAt - start) * pixelsPerSecond,
+      }}
+    >
+      <div css={unitLineStyle} />
+      {firstStep ? (
+        <StepIcon stepDesc={firstStep.desc} ref={ref} />
+      ) : (
+        <UnitIcon unit={entity} ref={ref} />
+      )}
+    </Col>
+  );
 };
-
-const UnitIcon = ({unit}) => (
-  <img src={getIcon(unit.type, unit.id)} alt={unit.type} title={unit.type} css={iconStyle} />
-);
-
-const UnitStep = ({entity, start, createdAt, buildingCreatedAt, firstStep, pixelsPerSecond}) => (
-  <Col
-    css={entityTile}
-    style={{
-      top: (start - buildingCreatedAt) * pixelsPerSecond,
-      height: (createdAt - start) * pixelsPerSecond,
-    }}
-  >
-    <div css={unitLineStyle} />
-    {firstStep ? <StepIcon stepDesc={firstStep.desc} /> : <UnitIcon unit={entity} />}
-  </Col>
-);
 
 const ResearchStep = ({start, buildingCreatedAt, technology, id, duration, pixelsPerSecond}) => (
   <Col
@@ -336,12 +451,36 @@ const BuildingSteps = ({steps, startAt, pixelsPerSecond}) =>
     )
   );
 
-const Activity = ({desc, entityIds, start, pixelsPerSecond}) => (
-  <Col css={entityTile} style={{top: start * pixelsPerSecond}}>
-    {desc.type !== "research" && <div css={villCountPill}>{entityIds.length}</div>}
-    <StepIcon stepDesc={desc} />
-  </Col>
-);
+const Connector = ({connectToEntId}) => {
+  const entPos = useEntityPositionStore((s) => s.entPositions[connectToEntId]);
+  const [bounds, ref] = useMeasure();
+  const {setConnection, removeConnection} = useEntityPositionStore((s) => ({
+    setConnection: s.setConnection,
+    removeConnection: s.removeConnection,
+  }));
+  React.useEffect(() => {
+    if (entPos && bounds) {
+      setConnection(connectToEntId, entPos, bounds);
+      return () => removeConnection(connectToEntId);
+    }
+  }, [bounds, connectToEntId, entPos, removeConnection, setConnection]);
+  return (
+    <div
+      style={{position: "absolute", top: 0, left: 0, bottom: 0, right: 0, zIndex: -2}}
+      ref={ref}
+    />
+  );
+};
+
+const Activity = ({desc, entityIds, start, pixelsPerSecond, connectToEntId}) => {
+  return (
+    <Col css={entityTile} style={{top: start * pixelsPerSecond}}>
+      {connectToEntId && <Connector connectToEntId={connectToEntId} />}
+      {desc.type !== "research" && <div css={villCountPill}>{entityIds.length}</div>}
+      <StepIcon stepDesc={desc} />
+    </Col>
+  );
+};
 
 const ActivityLane = ({activities, pixelsPerSecond, bufferFromStart}) => {
   return (
@@ -359,7 +498,7 @@ const ActivityLane = ({activities, pixelsPerSecond, bufferFromStart}) => {
 const BuildingLane = ({building, pixelsPerSecond, bufferFromStart, entities, activities}) => {
   const {type, createdAt, id, steps} = building;
   const buildingSteps = getBuildingSteps({steps, entities, activities});
-  const activityLanes = activitesToLanes({activities, iconHeightInPixels: 15});
+  const activityLanes = activitesToLanes({activities, iconHeightInPixels: 15, entities});
 
   return (
     <React.Fragment>
@@ -423,7 +562,8 @@ const CompactView = React.memo(({entities, pixelsPerSecond, totalDuration, buffe
   console.log({entities});
 
   return (
-    <Row sp={1}>
+    <Row sp={1} css={{positon: "relative"}}>
+      <Connections />
       {buildingsTrainingUnits.map((b, i) => (
         <BuildingLane
           key={b.id}

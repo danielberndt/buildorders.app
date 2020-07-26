@@ -23,7 +23,9 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
-    "typescript": "^3.9.7"
+    "resize-observer-polyfill": "^1.5.1",
+    "typescript": "^3.9.7",
+    "zustand": "^2.2.3"
   },
   "devDependencies": {
     "@danielberndt/exec": "^1.2.1",
