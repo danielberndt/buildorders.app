@@ -304,8 +304,6 @@ const ConnectionLine = ({entPos, targetPos, bounds}) => {
 const Connections = () => {
   const connections = useEntityPositionStore((s) => s.connections);
   const [bounds, ref] = useMeasure();
-  console.log({connections, bounds});
-
   return (
     <div css={connectionsStyle} ref={ref}>
       {bounds &&
@@ -314,23 +312,6 @@ const Connections = () => {
         ))}
     </div>
   );
-
-  // return (
-  //   <svg css={connectionsStyle} width="100%" height="100%" viewBox="0 0 100 100" ref={ref}>
-  //     {bounds &&
-  //       Object.entries(connections).map(([key, {entPos, targetPos}]) => (
-  //         <line
-  //           key={key}
-  //           x1={((entPos.left - bounds.left) / bounds.width) * 100}
-  //           y1={((entPos.top - bounds.top - 300) / bounds.height) * 100}
-  //           x2={((targetPos.left - bounds.left) / bounds.width) * 100}
-  //           y2={((targetPos.top - bounds.top - 300) / bounds.height) * 100}
-  //           stroke="black"
-  //           strokeWidth="1px"
-  //         />
-  //       ))}
-  //   </svg>
-  // );
 };
 
 const getStepInfo = (desc) => {
@@ -558,8 +539,6 @@ const CompactView = React.memo(({entities, pixelsPerSecond, totalDuration, buffe
   });
 
   const firstTc = entityList.find((ent) => ent.type === "townCenter");
-
-  console.log({entities});
 
   return (
     <Row sp={1} css={{positon: "relative"}}>
