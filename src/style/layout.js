@@ -25,10 +25,10 @@ const classes = {
   backgroundColor: createClasses(["backgroundColor"], tokens.colors),
   shadows: createClasses("boxShadow", tokens.shadows),
 
-  vertSpacing: createClasses("vertSpacing", tokens.spacings, val => ({
+  vertSpacing: createClasses("vertSpacing", tokens.spacings, (val) => ({
     [`> *:not(:last-child):not(.x-push)`]: {marginRight: `${val}rem`},
   })),
-  horSpacing: createClasses("horSpacing", tokens.spacings, val => ({
+  horSpacing: createClasses("horSpacing", tokens.spacings, (val) => ({
     [`> *:not(:last-child):not(.x-push)`]: {marginBottom: `${val}rem`},
   })),
 };
@@ -37,7 +37,7 @@ export const layoutClasses = classes;
 
 const elevationToShadow = {1: "default", 2: "md", 3: "lg", 4: "xl", 5: "xxl"};
 
-const propsToCss = props => {
+const propsToCss = (props) => {
   const {
     css: cssList = [],
     pa,
@@ -64,11 +64,11 @@ const propsToCss = props => {
   return {css: cssList, ...rest};
 };
 
-export const Push = props => <div className="x-push" css={classes.flex.auto} {...props} />;
+export const Push = (props) => <div className="x-push" css={classes.flex.auto} {...props} />;
 
 const rowClass = css({display: "flex", flexDirection: "row"});
 
-const rowCss = props => {
+const rowCss = (props) => {
   const {css: cssList = [], sp, align, justify, breaking, ...rest} = props;
   cssList.push(rowClass);
   if (sp !== undefined && sp !== null) cssList.push(classes.vertSpacing[sp]);
@@ -86,7 +86,7 @@ export const Row = React.forwardRef((props, ref) => {
 });
 
 const colClass = css({display: "flex", flexDirection: "column"});
-const colCss = props => {
+const colCss = (props) => {
   const {css: cssList = [], sp, align, justify, ...rest} = props;
   cssList.push(colClass);
   if (sp !== undefined && sp !== null) cssList.push(classes.horSpacing[sp]);

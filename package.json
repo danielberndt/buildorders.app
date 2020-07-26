@@ -9,6 +9,7 @@
     "test:watch": "react-scripts test --watch",
     "eject": "react-scripts eject",
     "lint": "eslint --max-warnings=0 'src/**/*.js'",
+    "format:all": "prettier --write './src/**/*.{js,json,css}' './*.{js,json}'",
     "deploy": "node deploy.js"
   },
   "dependencies": {

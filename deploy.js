@@ -38,9 +38,7 @@ async function deployTo(opts) {
   // `create-invalidation` is only supported for preview version
   await exec(`aws configure set preview.cloudfront true`);
   await exec(
-    `aws cloudfront create-invalidation --distribution-id ${
-      opts.distributionId
-    } --paths '/*.html' /manifest.json /service-worker.js`
+    `aws cloudfront create-invalidation --distribution-id ${opts.distributionId} --paths '/*.html' /manifest.json /service-worker.js`
   );
 }
 

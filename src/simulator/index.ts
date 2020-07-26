@@ -93,7 +93,7 @@ const generateId = (type: string, name: string) => {
 };
 
 type TaskToDist = {
-  [P in TaskType]?: (task: FindByType<Task, P>, resPatches: EnhancedResPatches) => number
+  [P in TaskType]?: (task: FindByType<Task, P>, resPatches: EnhancedResPatches) => number;
 };
 
 const taskToDistance: TaskToDist = {
@@ -103,7 +103,7 @@ const taskToDistance: TaskToDist = {
 };
 
 type TaskToStepDesc = {
-  [P in TaskType]: (opts: {task: FindByType<Task, P>; resPatches: EnhancedResPatches}) => StepDesc
+  [P in TaskType]: (opts: {task: FindByType<Task, P>; resPatches: EnhancedResPatches}) => StepDesc;
 };
 
 const taskToStepDesc: TaskToStepDesc = {
@@ -320,7 +320,7 @@ type ConditionFulfilledObj = {
     cond: FindByType<Until, P>;
     step: Step;
     state: State;
-  }) => boolean
+  }) => boolean;
 };
 
 const conditionFulfilled: ConditionFulfilledObj = {
@@ -341,7 +341,7 @@ const conditionFulfilled: ConditionFulfilledObj = {
 
 const isStepCompleted = (step: Step, state: State) =>
   step.desc.until &&
-  step.desc.until.some(cond => conditionFulfilled[cond.type]({cond: cond as any, step, state}));
+  step.desc.until.some((cond) => conditionFulfilled[cond.type]({cond: cond as any, step, state}));
 
 const addEntity = (opts: {
   id: string;
@@ -381,7 +381,7 @@ const addEntity = (opts: {
 };
 
 const applyResearchToAllAges = (improves: any, modifiers: AllAgeModifiers) => {
-  Object.values(modifiers).forEach(mod => applyResearch(improves, mod));
+  Object.values(modifiers).forEach((mod) => applyResearch(improves, mod));
 };
 
 const applyResearch = (improves: any, targetModifiers: any) => {
@@ -439,7 +439,7 @@ export const simulateGame = (
   };
 
   addInPlace(state.currRes, state.modifiers.extraRessources);
-  state.modifiers.freeTechs.forEach(tName => {
+  state.modifiers.freeTechs.forEach((tName) => {
     const tech = technologies[tName];
     if (tech.improves) applyResearchToAllAges(tech.improves, allAgeModifiers);
     state.completedResearch.add(tName);
@@ -539,7 +539,7 @@ export const simulateGame = (
           if (technology in allAgeModifiers) {
             state.modifiers = allAgeModifiers[technology as keyof typeof allAgeModifiers];
             addInPlace(state.currRes, state.modifiers.extraRessources);
-            state.modifiers.freeTechs.forEach(tName => {
+            state.modifiers.freeTechs.forEach((tName) => {
               const tech = technologies[tName];
               if (tech.improves) applyResearches.push(tech.improves);
               state.completedResearch.add(tName);
@@ -568,7 +568,7 @@ export const simulateGame = (
       }
     }
 
-    applyResearches.forEach(improves => applyResearchToAllAges(improves, allAgeModifiers));
+    applyResearches.forEach((improves) => applyResearchToAllAges(improves, allAgeModifiers));
 
     for (const [id, construction] of Object.entries(state.constructions)) {
       if (construction.builders > 0) {
