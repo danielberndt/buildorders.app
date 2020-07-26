@@ -197,13 +197,33 @@ const noNeedToWalk = (prevStep: Step | null, nextTask: Task, state: State) => {
   return false;
 };
 
+const fallbackStep: Task = {type: "wait"};
+
 const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
-  const nextTask = entity.remainingTasks.shift() || {type: "wait"};
   const prevStep = entity.steps.length > 0 ? entity.steps[entity.steps.length - 1] : null;
+  if (
+    prevStep &&
+    prevStep.desc.type === "gather" &&
+    prevStep.desc.activity === "farming" &&
+    entity.remainingTasks.length === 0
+  ) {
+    const nextFarmId = `f-reseed-${entity.id}-${state.time}`;
+    entity.remainingTasks.push(
+      {type: "build", building: "farm", id: nextFarmId, distance: 0},
+      {type: "gather", resId: nextFarmId}
+    );
+  }
+  const nextTask = entity.remainingTasks.shift() || fallbackStep;
+
+  const keepGatherSameRes =
+    prevStep &&
+    prevStep.desc.type === "gather" &&
+    nextTask.type === "gather" &&
+    prevStep.desc.resId === nextTask.resId;
 
   // check if we need to walk there first
   const distanceFn = taskToDistance[nextTask.type];
-  if (distanceFn && entity.distanceFromTC !== null) {
+  if (!keepGatherSameRes && distanceFn && entity.distanceFromTC !== null) {
     let walkDist: number;
     let taskDistFromTc: number;
     if (

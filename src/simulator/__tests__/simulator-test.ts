@@ -639,6 +639,62 @@ test("build a farm and gather from it", () => {
   `);
 });
 
+test("rebuild a farm if it's empty", () => {
+  const instructions: Instructions = {
+    startingRes: {...nullRes, wood: 120},
+    resPatches: {},
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [
+        {type: "build", building: "farm", id: "f1", distance: 0},
+        {type: "gather", resId: "f1"},
+      ],
+    },
+  };
+  const {resAndPopHistory, entities} = simulateGame(instructions, 600, defaultModifiers());
+  expect(resAndPopHistory[599]).toMatchInlineSnapshot(`
+    Object {
+      "food": 194.74509803921498,
+      "gold": 0,
+      "maxPopSpace": 0,
+      "popSpace": 1,
+      "stone": 0,
+      "wood": 0,
+    }
+  `);
+  expect(entities.v1.steps.map((s) => ({type: s.desc.type, start: s.start})))
+    .toMatchInlineSnapshot(`
+    Array [
+      Object {
+        "start": 0,
+        "type": "walk",
+      },
+      Object {
+        "start": 3,
+        "type": "build",
+      },
+      Object {
+        "start": 18,
+        "type": "gather",
+      },
+      Object {
+        "start": 524,
+        "type": "walk",
+      },
+      Object {
+        "start": 527,
+        "type": "build",
+      },
+      Object {
+        "start": 542,
+        "type": "gather",
+      },
+    ]
+  `);
+});
+
 test("condition fulfilled while walking to target", () => {
   const instructions: Instructions = {
     startingRes: {...nullRes, food: 45},
