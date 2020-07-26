@@ -18,6 +18,7 @@ import {
   Buildings,
   Units,
   Technologies,
+  ResPatch,
 } from "./types";
 import {Modifiers, AllAgeModifiers} from "./defaultModifiers";
 import {units, technologies, buildings, allEntities} from "./entities";
@@ -340,6 +341,7 @@ const enhanceRessources = (resPatches: ResPatches, modifiers: Modifiers) => {
       resType: villGatheringData[activity].ressource,
       remaining: amount * count * modifiers.ressourceDurationMultiplier,
       hpRemaining: (hp || 0) * count,
+      workers: new Set(),
     };
   });
   return enhanced;
@@ -455,6 +457,12 @@ type State = {
   completedResearch: Set<Technologies>;
 };
 
+const getCrowdModifier = (res: EnhancedResPatch & ResPatch): number => {
+  let size = res.workers.size;
+  if (res.type === "boar") size -= 5;
+  return size < 2 ? 0 : size * 0.25;
+};
+
 export const simulateGame = (
   instructions: Instructions,
   duration: number,
@@ -547,7 +555,12 @@ export const simulateGame = (
         if (res.remaining >= 0) {
           const decayRes = decayableRes[resId];
           if (decayRes) decayRes.hasBeenTouched = true;
-          let gatherAmount = gather(activity, res.hasDeposit ? 1 : res.distance, state.modifiers);
+          const crowdModifier = getCrowdModifier(res);
+          let gatherAmount = gather(
+            activity,
+            res.hasDeposit ? 1 : res.distance + crowdModifier,
+            state.modifiers
+          );
           res.remaining -= gatherAmount;
           if (res.remaining <= 0) {
             gatherAmount += res.remaining;
@@ -631,6 +644,7 @@ export const simulateGame = (
               state.modifiers.ressourceDurationMultiplier,
             hasDeposit: false,
             hpRemaining: 0,
+            workers: new Set(),
           };
         } else {
           const entity = addEntity({
@@ -657,6 +671,14 @@ export const simulateGame = (
       const step = state.currentSteps[i];
       const nextStep = processConditions(step, state);
       if (nextStep !== step) {
+        if (step.desc.type === "gather") {
+          const res = state.resPatches[step.desc.resId];
+          res.workers.delete(step.entity.id);
+        }
+        if (nextStep.desc.type === "gather") {
+          const res = state.resPatches[nextStep.desc.resId];
+          res.workers.add(nextStep.entity.id);
+        }
         state.currentSteps.splice(i, 1);
         i -= 1;
         if (nextStep.desc.until.length) state.currentSteps.push(nextStep);

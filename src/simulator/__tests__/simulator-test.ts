@@ -351,7 +351,7 @@ test("train vill until enough food", () => {
       "maxPopSpace": 10,
       "popSpace": 2,
       "stone": 0,
-      "wood": 0.8129496402878287,
+      "wood": 0.49946558825924026,
     }
   `);
   expect(entities.v1.steps.map((s) => ({type: s.desc.type, start: s.start})))
@@ -374,15 +374,15 @@ test("train vill until enough food", () => {
         "type": "gather",
       },
       Object {
-        "start": 231,
+        "start": 232,
         "type": "walk",
       },
       Object {
-        "start": 239,
+        "start": 240,
         "type": "build",
       },
       Object {
-        "start": 256,
+        "start": 257,
         "type": "wait",
       },
     ]
@@ -399,15 +399,15 @@ test("train vill until enough food", () => {
         "type": "gather",
       },
       Object {
-        "start": 232,
+        "start": 233,
         "type": "walk",
       },
       Object {
-        "start": 240,
+        "start": 241,
         "type": "build",
       },
       Object {
-        "start": 256,
+        "start": 257,
         "type": "wait",
       },
     ]
@@ -1029,4 +1029,51 @@ test("switch from one gathering source to the next with distance 0 incurs a dela
       },
     ]
   `);
+});
+
+test("crowded ressources are being punished", () => {
+  const instructions1: Instructions = {
+    startingRes: nullRes,
+    resPatches: {
+      woodline: {type: "wood", distance: 1},
+    },
+    entities: {
+      v1: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "woodline"}],
+    },
+  };
+  const sim1 = simulateGame(instructions1, 200, defaultModifiers());
+  expect(sim1.resAndPopHistory[199].wood).toMatchInlineSnapshot(`69.64920273348484`);
+
+  const instructions2: Instructions = {
+    ...instructions1,
+    entities: {
+      ...instructions1.entities,
+      v2: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "woodline"}],
+      v2: [{type: "gather", resId: "woodline"}],
+    },
+  };
+
+  const sim2 = simulateGame(instructions2, 200, defaultModifiers());
+  expect(sim2.resAndPopHistory[199].wood).toMatchInlineSnapshot(`133.37404580152764`);
+
+  const instructions3: Instructions = {
+    ...instructions2,
+    entities: {
+      ...instructions2.entities,
+      v3: {type: "villager"},
+    },
+    tasks: {
+      v1: [{type: "gather", resId: "woodline"}],
+      v2: [{type: "gather", resId: "woodline"}],
+      v3: [{type: "gather", resId: "woodline"}],
+    },
+  };
+  const sim3 = simulateGame(instructions3, 200, defaultModifiers());
+  expect(sim3.resAndPopHistory[199].wood).toMatchInlineSnapshot(`195.89535504538014`);
 });

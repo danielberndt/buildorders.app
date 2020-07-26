@@ -8,7 +8,7 @@ export type RecursivePartial<T> = {
     ? RecursivePartial<U>[]
     : T[P] extends object
     ? RecursivePartial<T[P]>
-    : T[P]
+    : T[P];
 };
 
 export type Res = {food: number; wood: number; gold: number; stone: number};
@@ -42,6 +42,7 @@ export type EnhancedResPatch = {
   remaining: number;
   hasDeposit: boolean;
   hpRemaining: number;
+  workers: Set<string>;
 };
 export type ResPatch = ResPatchWithCount | ResPatchWithoutCount;
 
@@ -77,9 +78,10 @@ type RawStepDesc =
       id: string;
       distanceFromTC: number;
     }
-  | {type: "walk"; endLocation: number; remainingDistance: number} & (
+  | ({type: "walk"; endLocation: number; remainingDistance: number} & (
       | {luringBoarId: string}
-      | {targetStepDesc: StepDesc; targetRes: string | null})
+      | {targetStepDesc: StepDesc; targetRes: string | null}
+    ))
   | {type: "wait"}
   | {type: "train"; unit: Units; id: string; remainingTime: number}
   | {
