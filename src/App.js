@@ -2,9 +2,9 @@ import React from "react";
 import {Col} from "./style/layout";
 import {Text} from "./style/text";
 import Visualiser from "./components/Visualiser";
-import scoutInstructions from "./instructions/scouts";
 import {getDefaultModifiers} from "./simulator/defaultModifiers";
 import "./simulator/civs";
+import scoutCiceroInstructions from "./instructions/scouts-cicero";
 
 const App = () => (
   <Col>
@@ -12,8 +12,8 @@ const App = () => (
       Build Orders
     </Text>
     <Visualiser
-      instructions={scoutInstructions}
-      duration={800}
+      instructions={scoutCiceroInstructions}
+      duration={1000}
       allAgeModifiers={getDefaultModifiers()}
     />
   </Col>

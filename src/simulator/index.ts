@@ -209,6 +209,7 @@ const getNextStepDesc = (entity: Entity, state: State): StepDesc => {
   ) {
     const nextFarmId = `f-reseed-${entity.id}-${state.time}`;
     entity.remainingTasks.push(
+      {type: "wait", until: {type: "buildRes", entity: "farm"}},
       {type: "build", building: "farm", id: nextFarmId, distance: 0},
       {type: "gather", resId: nextFarmId}
     );

@@ -110,7 +110,7 @@ const Visualiser = ({instructions, duration: totalDuration, allAgeModifiers}) =>
 
   const currentRes = resAndPopHistory[currentTime];
 
-  const [showDetailView, setShowDetailView] = React.useState(false);
+  const [showDetailView, setShowDetailView] = React.useState(true);
   const ViewComp = showDetailView ? DetailView : CompactView;
 
   return (
